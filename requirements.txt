@@ -1,0 +1,10 @@
+numpy
+scikit-learn
+fastprogress
+docopt
+transformers
+pandas
+ekphrasis
+tqdm
+pandas
+torch
