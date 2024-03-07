@@ -19,9 +19,9 @@ Options:
     --alpha-loss=<float>              weight used to balance the loss [default: 0.2]
 """
 
-from learner import Trainer
-from models.SpanEmo import SpanEmo
-from dataset_processing.DataClass import DataClass
+from MLEC import Trainer
+from MLEC import SpanEmo
+from MLEC import DataClass
 from torch.utils.data import DataLoader
 import torch
 from docopt import docopt
@@ -66,12 +66,15 @@ print("The number of validation batches: ", len(dev_data_loader))
 #############################################################################
 # Define Model & Training Pipeline
 #############################################################################
+
 model = SpanEmo(
     output_dropout=float(args["--output-dropout"]),
     lang=args["--lang"],
-    joint_loss=args["--loss-type"],
-    alpha=float(args["--alpha-loss"]),
+    col_names=train_dataset.label_names,
 )
+
+# make sure the bert vocab size is in line with the tokeniser
+model.bert.bert.resize_token_embeddings(len(train_dataset.bert_tokeniser))
 #############################################################################
 # Start Training
 #############################################################################

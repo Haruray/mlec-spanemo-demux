@@ -3,7 +3,7 @@ from transformers import BertTokenizer, AutoTokenizer
 from tqdm import tqdm
 import torch
 import pandas as pd
-from twitter_preprocessor import twitter_preprocessor
+from MLEC.dataset_processing.twitter_preprocessor import twitter_preprocessor
 
 
 class DataClass(Dataset):
@@ -11,12 +11,14 @@ class DataClass(Dataset):
         self.args = args
         self.filename = filename
         self.max_length = int(args["--max-length"])
-        self.data, self.labels = self.load_dataset()
+        self.data, self.labels, self.label_names = self.load_dataset()
 
         if args["--lang"] == "English":
             self.bert_tokeniser = BertTokenizer.from_pretrained(
                 "bert-base-uncased", do_lower_case=True
             )
+            vocab = self.bert_tokeniser.get_vocab()
+            self.bert_tokeniser.add_tokens(["pessimism"])
         elif args["--lang"] == "Arabic":
             self.bert_tokeniser = AutoTokenizer.from_pretrained(
                 "asafaya/bert-base-arabic"
@@ -34,27 +36,18 @@ class DataClass(Dataset):
         """
         df = pd.read_csv(self.filename, sep="\t")
         x_train, y_train = df.Tweet.values, df.iloc[:, 2:].values
-        return x_train, y_train
+        # get label names
+        label_names = df.columns[2:].tolist()
+        return x_train, y_train, label_names
 
     def process_data(self):
         desc = "PreProcessing dataset {}...".format("")
         preprocessor = twitter_preprocessor()
 
         if self.args["--lang"] == "English":
-            segment_a = "anger anticipation disgust fear joy love optimism hopeless sadness surprise or trust?"
-            label_names = [
-                "anger",
-                "anticipation",
-                "disgust",
-                "fear",
-                "joy",
-                "love",
-                "optimism",
-                "hopeless",
-                "sadness",
-                "surprise",
-                "trust",
-            ]
+            # flat self.label_names
+            segment_a = " ".join(self.label_names) + "?"
+            print(segment_a)
         elif self.args["--lang"] == "Arabic":
             segment_a = "غضب توقع قرف خوف سعادة حب تفأول اليأس حزن اندهاش أو ثقة؟"
             label_names = [
@@ -106,9 +99,9 @@ class DataClass(Dataset):
             # label indices
             label_idxs = [
                 self.bert_tokeniser.convert_ids_to_tokens(input_id).index(
-                    label_names[idx]
+                    self.label_names[idx]
                 )
-                for idx, _ in enumerate(label_names)
+                for idx, _ in enumerate(self.label_names)
             ]
             label_indices.append(label_idxs)
 

@@ -12,9 +12,9 @@ Options:
     --test-path=<str>                 file path of the test set [default: ]
 """
 
-from learner import EvaluateOnTest
-from models.SpanEmo import SpanEmo
-from dataset_processing.DataClass import DataClass
+from MLEC import EvaluateOnTest
+from MLEC import SpanEmo
+from MLEC import DataClass
 from torch.utils.data import DataLoader
 import torch
 from docopt import docopt

@@ -1,12 +1,22 @@
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-from BertEncoder import BertEncoder
+from MLEC.models.BertEncoder import BertEncoder
+from MLEC.enums.CorrelationType import CorrelationType
+from MLEC.models.MLECModel import MLECModel
 
 
-class Demux(nn.Module):
+class Demux(MLECModel):
+
     def __init__(
-        self, output_dropout=0.1, lang="English", joint_loss="joint", alpha=0.2
+        self,
+        output_dropout=0.1,
+        lang="English",
+        alpha=0.2,
+        beta=0.1,
+        joint_loss=True,
+        corr_type=CorrelationType.IDENTITY,
+        col_names=[],
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -14,7 +24,7 @@ class Demux(nn.Module):
         :param joint_loss: which loss to use cel|corr|cel+corr
         :param alpha: control contribution of each loss function in case of joint training
         """
-        super(Demux, self).__init__()
+        super(Demux, self).__init__(corr_type=corr_type, col_names=col_names)
         self.bert = BertEncoder(lang=lang)
         self.joint_loss = joint_loss
         self.alpha = alpha
@@ -65,43 +75,17 @@ class Demux(nn.Module):
         )
 
         # Loss Function
-        if self.joint_loss == "joint":
-            cel = F.binary_cross_entropy_with_logits(logits, targets).cuda()
-            cl = self.corr_loss(logits, targets)
-            loss = ((1 - self.alpha) * cel) + (self.alpha * cl)
-        elif self.joint_loss == "cross-entropy":
-            loss = F.binary_cross_entropy_with_logits(logits, targets).cuda()
-        elif self.joint_loss == "corr_loss":
-            loss = self.corr_loss(logits, targets)
+        loss_binary_ce = F.binary_cross_entropy_with_logits(logits, targets).cuda()
+        loss_inter_corr = self.inter_corr_loss(logits, targets)
+        loss_intra_corr = self.intra_corr_loss(logits, targets)
+        loss_corr_joint = (
+            0.5 * (loss_inter_corr + loss_intra_corr) if self.joint_loss else 0
+        )
+        loss = (
+            (1 - self.alpha - self.beta) * loss_binary_ce
+            + self.alpha * loss_corr_joint
+            + self.beta * loss_inter_corr
+        )
 
         y_pred = self.compute_pred(logits)
         return loss, num_rows, y_pred, targets.cpu().numpy()
-
-    @staticmethod
-    def corr_loss(y_hat, y_true, reduction="mean"):
-        """
-        :param y_hat: model predictions, shape(batch, classes)
-        :param y_true: target labels (batch, classes)
-        :param reduction: whether to avg or sum loss
-        :return: loss
-        """
-        loss = torch.zeros(y_true.size(0)).cuda()
-        for idx, (y, y_h) in enumerate(zip(y_true, y_hat.sigmoid())):
-            y_z, y_o = (y == 0).nonzero(), y.nonzero()
-            if y_o.nelement() != 0:
-                output = torch.exp(
-                    torch.sub(y_h[y_z], y_h[y_o][:, None]).squeeze(-1)
-                ).sum()
-                num_comparisons = y_z.size(0) * y_o.size(0)
-                loss[idx] = output.div(num_comparisons)
-        return loss.mean() if reduction == "mean" else loss.sum()
-
-    @staticmethod
-    def compute_pred(logits, threshold=0.5):
-        """
-        :param logits: model predictions
-        :param threshold: threshold value
-        :return:
-        """
-        y_pred = torch.sigmoid(logits) > threshold
-        return y_pred.float().cpu().numpy()
