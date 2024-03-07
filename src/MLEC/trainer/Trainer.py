@@ -6,6 +6,10 @@ import numpy as np
 import torch
 import time
 from MLEC.trainer.EarlyStopping import EarlyStopping
+from MLEC.loss.inter_corr_loss import inter_corr_loss
+from MLEC.loss.intra_corr_loss import intra_corr_loss
+from MLEC.enums.CorrelationType import CorrelationType
+from MLEC.emotion_corr_weightings.Correlations import Correlations
 
 
 class Trainer(object):
@@ -17,12 +21,21 @@ class Trainer(object):
     :param filename: the best model will be saved using this given name (str)
     """
 
-    def __init__(self, model, train_data_loader, val_data_loader, filename):
+    def __init__(
+        self,
+        model,
+        train_data_loader,
+        val_data_loader,
+        filename,
+        col_names=[],
+        corr_type: CorrelationType = CorrelationType.IDENTITY,
+    ):
         self.model = model
         self.train_data_loader = train_data_loader
         self.val_data_loader = val_data_loader
         self.filename = filename
         self.early_stop = EarlyStopping(self.filename, patience=10)
+        self.correlations = Correlations(corr_type=corr_type, col_names=col_names)
 
     def fit(self, num_epochs, args, device="cuda:0"):
         """
@@ -44,10 +57,23 @@ class Trainer(object):
             for step, batch in enumerate(
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
-                loss, num_rows, _, _ = self.model(batch, device)
-                overall_training_loss += loss.item() * num_rows
-
-                loss.backward()
+                num_rows, _, logits, targets = self.model(batch, device)
+                inter_corr_loss_total = intra_corr_loss(
+                    logits, targets, self.correlations
+                )
+                intra_corr_loss_total = inter_corr_loss(
+                    logits, targets, self.correlations
+                )
+                bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
+                    device
+                )
+                total_loss = (
+                    bce_loss * (1 - (self.model.alpha + self.model.beta))
+                    + (inter_corr_loss_total * self.model.alpha)
+                    + (intra_corr_loss_total * self.model.beta)
+                )
+                overall_training_loss += total_loss.item() * num_rows
+                total_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 optimizer.step()
                 if step_scheduler_on_batch:
@@ -133,8 +159,23 @@ class Trainer(object):
                     self.val_data_loader, parent=pbar, leave=(pbar is not None)
                 )
             ):
-                loss, num_rows, y_pred, targets = self.model(batch, device)
-                overall_val_loss += loss.item() * num_rows
+                num_rows, y_pred, logits, targets = self.model(batch, device)
+                targets = targets.cpu().numpy()
+                inter_corr_loss_total = intra_corr_loss(
+                    logits, targets, self.correlations
+                )
+                intra_corr_loss_total = inter_corr_loss(
+                    logits, targets, self.correlations
+                )
+                bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
+                    device
+                )
+                total_loss = (
+                    bce_loss * (1 - (self.model.alpha + self.model.beta))
+                    + (inter_corr_loss_total * self.model.alpha)
+                    + (intra_corr_loss_total * self.model.beta)
+                )
+                overall_val_loss += total_loss.item() * num_rows
 
                 current_index = index_dict
                 preds_dict["y_true"][

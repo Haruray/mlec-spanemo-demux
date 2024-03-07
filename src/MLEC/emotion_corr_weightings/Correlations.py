@@ -36,12 +36,13 @@ class Correlations:
 
         self.active = active
         self.corr_type = corr_type
+        self.col_names = np.array(col_names)
 
         if active:
 
             assert col_names is not None
 
-            self.col_names = col_names
+            self.col_names = np.array(col_names)
 
             # Set correlation matrix
             self.corrs = torch.tensor(
@@ -80,7 +81,7 @@ class Correlations:
         def rec_list_elem(l):
             if not l:
                 return
-            if isinstance(l, list):
+            if isinstance(l, list) or isinstance(l, np.ndarray):
                 return rec_list_elem(l[0])
             return l
 
@@ -94,7 +95,7 @@ class Correlations:
             assert (
                 self.col_names is not None
             ), "str indexing only if column names provided"
-            idx = [self.col_names.index(i) for i in idx]
+            idx = [list(self.col_names).index(i) for i in idx]
 
         return idx
 

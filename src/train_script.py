@@ -70,7 +70,6 @@ print("The number of validation batches: ", len(dev_data_loader))
 model = SpanEmo(
     output_dropout=float(args["--output-dropout"]),
     lang=args["--lang"],
-    col_names=train_dataset.label_names,
 )
 
 # make sure the bert vocab size is in line with the tokeniser
@@ -78,5 +77,11 @@ model.bert.bert.resize_token_embeddings(len(train_dataset.bert_tokeniser))
 #############################################################################
 # Start Training
 #############################################################################
-learn = Trainer(model, train_data_loader, dev_data_loader, filename=filename)
+learn = Trainer(
+    model,
+    train_data_loader,
+    dev_data_loader,
+    filename=filename,
+    col_names=train_dataset.label_names,
+)
 learn.fit(num_epochs=int(args["--max-epoch"]), args=args, device=device)
