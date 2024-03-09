@@ -41,7 +41,7 @@ class SpanEmoB2B(MLECDecoder):
         self.ffn = nn.Sequential(
             nn.Linear(
                 batch_size,
-                label_size,
+                batch_size,
             ),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
