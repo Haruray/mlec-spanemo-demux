@@ -21,6 +21,8 @@ class MLECModel(nn.Module):
         :param alpha: control contribution of each loss function in case of joint training
         """
         super(MLECModel, self).__init__()
+        self.alpha = alpha
+        self.beta = beta
 
     def forward(self, batch, device):
         """

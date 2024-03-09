@@ -18,11 +18,12 @@ class SpanEmo(MLECModel):
         :param joint_loss: which loss to use cel|corr|cel+corr
         :param alpha: control contribution of each loss function in case of joint training
         """
-        super(SpanEmo, self).__init__()
+        super(SpanEmo, self).__init__(
+            alpha=alpha,
+            beta=beta,
+        )
         self.encoder = BertEncoder(lang=lang)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
-        self.alpha = alpha
-        self.beta = beta
 
         self.ffn = nn.Sequential(
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
