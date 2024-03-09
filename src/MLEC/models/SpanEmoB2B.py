@@ -45,7 +45,7 @@ class SpanEmoB2B(MLECDecoder):
             ),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(label_size, 1),
+            nn.Linear(batch_size, 1),
         )
         self.encoder_parameters = self.model.encoder.parameters()
         self.decoder_parameters = self.model.decoder.parameters()
