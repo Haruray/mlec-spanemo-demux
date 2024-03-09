@@ -19,6 +19,7 @@ class SpanEmoB2B(MLECDecoder):
         embedding_vocab_size=30522,
         alpha=0.2,
         beta=0.1,
+        label_size=11,
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -37,12 +38,12 @@ class SpanEmoB2B(MLECDecoder):
         self.model.decoder.resize_token_embeddings(embedding_vocab_size)
         self.ffn = nn.Sequential(
             nn.Linear(
-                self.model.decoder.config.hidden_size,
-                self.model.decoder.config.hidden_size,
+                label_size,
+                label_size,
             ),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(self.model.decoder.config.hidden_size, 1),
+            nn.Linear(label_size, 1),
         )
         self.encoder_parameters = self.model.encoder.parameters()
         self.decoder_parameters = self.model.decoder.parameters()
@@ -53,17 +54,29 @@ class SpanEmoB2B(MLECDecoder):
         :param device: device to run calculations on
         :return: loss, num_rows, y_pred, targets
         """
-        inputs, attention_masks, targets, lengths, label_idxs, label_input_ids = batch
+        (
+            inputs,
+            attention_masks,
+            targets,
+            lengths,
+            label_idxs,
+            label_input_ids,
+            all_label_input_ids,
+        ) = batch
         inputs, num_rows = inputs.long().to(device), inputs.size(0)
         label_idxs, label_input_ids = label_idxs[0].long().to(
             device
         ), label_input_ids.long().to(device)
         outputs = self.model(
             inputs,
-            attention_masks=attention_masks,
+            attention_mask=attention_masks,
             decoder_input_ids=label_input_ids,
         )
-        outputs_logits = outputs.logits
+        outputs_logits = outputs.logits[0][-1].cpu.detach().numpy()
+        # get the logits of the all_label_input_ids
+        emotion_logits = []
+        for label_input_id in all_label_input_ids:
+            emotion_logits.append(outputs_logits[label_input_id])
         # print(outputs)
         logits = (
             self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)

@@ -64,7 +64,7 @@ print("The number of validation batches: ", len(dev_data_loader))
 #############################################################################
 # Define Model & Training Pipeline
 #############################################################################
-
+label_size = len(train_dataset.label_names)
 # model = SpanEmo(
 #     output_dropout=float(args["--output-dropout"]),
 #     lang=args["--lang"],

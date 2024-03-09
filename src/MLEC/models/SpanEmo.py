@@ -39,14 +39,22 @@ class SpanEmo(MLECEncoder):
         :return: loss, num_rows, y_pred, targets
         """
         # prepare inputs and targets
-        inputs, attention_masks, targets, lengths, label_idxs, label_input_ids = batch
+        (
+            inputs,
+            attention_masks,
+            targets,
+            lengths,
+            label_idxs,
+            label_input_ids,
+            all_label_input_ids,
+        ) = batch
         inputs, num_rows = inputs.to(device), inputs.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
             device
         )
 
         # Bert encoder
-        last_hidden_state = self.encoder(inputs, attention_masks)
+        last_hidden_state = self.encoder(inputs, attention_mask=attention_masks)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones

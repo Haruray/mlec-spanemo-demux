@@ -12,6 +12,7 @@ class DataClass(Dataset):
         self.filename = filename
         self.max_length = int(args["--max-length"])
         self.data, self.labels, self.label_names = self.load_dataset()
+        self.all_label_input_ids = []
 
         if args["--lang"] == "English":
             self.bert_tokeniser = BertTokenizer.from_pretrained(
@@ -96,6 +97,8 @@ class DataClass(Dataset):
                 pad_to_max_length=True,
                 truncation=True,
             )["input_ids"]
+            if len(self.all_label_input_ids) == 0:
+                self.all_label_input_ids = label_input_id
             # extract label input ids from self.labels[data_idx] if it is not zero
             label_input_id = [
                 (
@@ -123,7 +126,16 @@ class DataClass(Dataset):
         length = self.lengths[index]
         label_input_ids = self.label_input_ids[index]
         attention_masks = self.attention_masks[index]
-        return inputs, attention_masks, labels, length, label_idxs, label_input_ids
+        all_label_input_ids = self.all_label_input_ids
+        return (
+            inputs,
+            attention_masks,
+            labels,
+            length,
+            label_idxs,
+            label_input_ids,
+            all_label_input_ids,
+        )
 
     def __len__(self):
         return len(self.inputs)
