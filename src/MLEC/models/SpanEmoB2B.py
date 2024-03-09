@@ -81,7 +81,7 @@ class SpanEmoB2B(MLECModel):
             decoder_input_ids=label_input_ids,
             decoder_attention_mask=label_attention_masks,
         )
-        outputs_logits = outputs.logits[0][-1].cpu().numpy()
+        outputs_logits = outputs.logits[0][-1].cpu()
         # get the logits of the all_label_input_ids
         emotion_logits = []
         for label_input_id in all_label_input_ids:
