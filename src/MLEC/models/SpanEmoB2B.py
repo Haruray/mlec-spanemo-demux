@@ -88,8 +88,9 @@ class SpanEmoB2B(MLECDecoder):
         # logits = (
         #     self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
         # )
+        outputs_logits = outputs_logits.squeeze(-1).view(-1, 11)
         print(outputs_logits.shape)
-        y_pred = self.compute_pred(outputs_logits.to(device))
+        y_pred = self.compute_pred(outputs_logits)
         logits = outputs_logits
 
         return num_rows, y_pred, logits, targets, outputs
