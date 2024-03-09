@@ -35,6 +35,7 @@ class SpanEmoB2B(MLECDecoder):
         self.model = EncoderDecoderModel(config)
         self.model.encoder.resize_token_embeddings(embedding_vocab_size)
         self.model.decoder.resize_token_embeddings(embedding_vocab_size)
+        print(self.model.config)
         self.ffn = nn.Sequential(
             nn.Linear(
                 self.model.decoder.config.hidden_size,
@@ -56,6 +57,7 @@ class SpanEmoB2B(MLECDecoder):
         inputs, targets, lengths, label_idxs = batch
         inputs, num_rows = inputs.long().to(device), inputs.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.long().to(device)
+        print(label_idxs)
         outputs = self.model(
             inputs,
             decoder_input_ids=targets,
