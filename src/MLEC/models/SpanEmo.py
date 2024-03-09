@@ -65,6 +65,7 @@ class SpanEmo(MLECEncoder):
             .squeeze(-1)
             .index_select(dim=1, index=label_idxs)
         )
+        print(logits.shape)
 
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets, last_hidden_state
