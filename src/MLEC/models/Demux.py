@@ -44,6 +44,7 @@ class Demux(MLECEncoder):
         """
         # prepare inputs and targets
         inputs, attention_masks, targets, lengths, label_idxs, label_input_ids = batch
+        attention_masks = attention_masks.to(device)
         inputs, num_rows = inputs.to(device), inputs.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
             device

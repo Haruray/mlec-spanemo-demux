@@ -63,6 +63,7 @@ class SpanEmoB2B(MLECDecoder):
             label_input_ids,
             all_label_input_ids,
         ) = batch
+        attention_masks = attention_masks.to(device)
         inputs, num_rows = inputs.long().to(device), inputs.size(0)
         label_idxs, label_input_ids = label_idxs[0].long().to(
             device
