@@ -20,6 +20,7 @@ class SpanEmoB2B(MLECDecoder):
         alpha=0.2,
         beta=0.1,
         label_size=11,
+        batch_size=32,
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -39,7 +40,7 @@ class SpanEmoB2B(MLECDecoder):
         self.ffn = nn.Sequential(
             nn.Linear(
                 label_size,
-                label_size,
+                batch_size,
             ),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
