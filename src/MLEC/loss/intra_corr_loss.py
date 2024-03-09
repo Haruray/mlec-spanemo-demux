@@ -65,7 +65,7 @@ def intra_corr_loss(y_hat, y_true, correlations: Correlations, reduction="mean")
                             ),
                         ),
                         decreasing=False,
-                    )
+                    ).to(device)
                 )
                 .squeeze(-1)
             ).sum()
