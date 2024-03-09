@@ -56,7 +56,7 @@ class SpanEmo(MLECEncoder):
         )
 
         # Bert encoder
-        last_hidden_state = self.encoder(inputs, attention_mask=attention_masks)
+        last_hidden_state = self.encoder.bert(inputs, attention_mask=attention_masks)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
