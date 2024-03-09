@@ -85,12 +85,11 @@ class SpanEmoB2B(MLECDecoder):
             emotion_logits.append(outputs_logits[label_input_id])
         # print(outputs)
         outputs_logits = torch.tensor(np.array(emotion_logits)).to(device)
-        logits = (
-            self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
-        )
-        print(logits.shape)
-        print(logits)
-        y_pred = self.compute_pred(logits.to(device))
-        logits = outputs[0]
+        # logits = (
+        #     self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
+        # )
+        print(outputs_logits.shape)
+        y_pred = self.compute_pred(outputs_logits.to(device))
+        logits = outputs_logits
 
         return num_rows, y_pred, logits, targets, outputs

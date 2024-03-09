@@ -57,7 +57,6 @@ class SpanEmo(MLECEncoder):
 
         # Bert encoder
         last_hidden_state = self.encoder(inputs, attention_mask=attention_masks)
-        print(last_hidden_state.shape)
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
         logits = (
@@ -65,7 +64,6 @@ class SpanEmo(MLECEncoder):
             .squeeze(-1)
             .index_select(dim=1, index=label_idxs)
         )
-        print(logits.shape)
 
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets, last_hidden_state
