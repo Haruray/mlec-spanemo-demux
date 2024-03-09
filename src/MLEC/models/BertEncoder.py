@@ -20,10 +20,12 @@ class BertEncoder(nn.Module):
             )
         self.feature_size = self.bert.config.hidden_size
 
-    def forward(self, input_ids):
+    def forward(self, input_ids, attention_mask=None):
         """
         :param input_ids: list[str], list of tokenised sentences
         :return: last hidden representation, torch.tensor of shape (batch_size, seq_length, hidden_dim)
         """
-        last_hidden_state, _ = self.bert(input_ids=input_ids, return_dict=False)
+        last_hidden_state, _ = self.bert(
+            input_ids=input_ids, attention_mask=attention_mask, return_dict=False
+        )
         return last_hidden_state
