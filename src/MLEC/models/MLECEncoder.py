@@ -8,6 +8,7 @@ from MLEC.enums.CorrelationType import CorrelationType
 
 
 class MLECEncoder(nn.Module):
+
     def __init__(
         self,
         output_dropout=0.1,
@@ -15,6 +16,7 @@ class MLECEncoder(nn.Module):
         alpha=0.2,
         beta=0.1,
         joint_loss=True,
+        embedding_vocab_size=30522,
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer

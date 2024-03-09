@@ -1,9 +1,6 @@
-import torch.nn.functional as F
 import torch.nn as nn
 from MLEC.models.BertEncoder import BertEncoder
-from MLEC.emotion_corr_weightings.Correlations import Correlations
-from MLEC.enums.CorrelationType import CorrelationType
-from MLEC.models.MLECModel import MLECEncoder
+from MLEC.models.MLECEncoder import MLECEncoder
 
 
 class SpanEmo(MLECEncoder):
@@ -13,6 +10,7 @@ class SpanEmo(MLECEncoder):
         lang="English",
         alpha=0.2,
         beta=0.1,
+        embedding_vocab_size=30522,
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -21,16 +19,18 @@ class SpanEmo(MLECEncoder):
         :param alpha: control contribution of each loss function in case of joint training
         """
         super(SpanEmo, self).__init__()
-        self.bert = BertEncoder(lang=lang)
+        self.encoder = BertEncoder(lang=lang)
+        self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
         self.alpha = alpha
         self.beta = beta
 
         self.ffn = nn.Sequential(
-            nn.Linear(self.bert.feature_size, self.bert.feature_size),
+            nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(self.bert.feature_size, 1),
+            nn.Linear(self.encoder.feature_size, 1),
         )
+        # adjust bert vocab size
 
     def forward(self, batch, device):
         """
@@ -46,7 +46,7 @@ class SpanEmo(MLECEncoder):
         )
 
         # Bert encoder
-        last_hidden_state = self.bert(inputs)
+        last_hidden_state = self.encoder(inputs)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
@@ -57,4 +57,4 @@ class SpanEmo(MLECEncoder):
         )
 
         y_pred = self.compute_pred(logits)
-        return num_rows, y_pred, logits, targets
+        return num_rows, y_pred, logits, targets, last_hidden_state

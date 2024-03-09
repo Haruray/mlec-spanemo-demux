@@ -57,7 +57,9 @@ class Trainer(object):
             for step, batch in enumerate(
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
-                num_rows, _, logits, targets = self.model(batch, device)
+                num_rows, _, logits, targets, last_hidden_state = self.model(
+                    batch, device
+                )
                 inter_corr_loss_total = intra_corr_loss(
                     logits, targets, self.correlations
                 )
@@ -159,7 +161,9 @@ class Trainer(object):
                     self.val_data_loader, parent=pbar, leave=(pbar is not None)
                 )
             ):
-                num_rows, y_pred, logits, targets = self.model(batch, device)
+                num_rows, y_pred, logits, targets, last_hidden_state = self.model(
+                    batch, device
+                )
                 targets = targets.cpu().numpy()
                 inter_corr_loss_total = intra_corr_loss(
                     logits, targets, self.correlations

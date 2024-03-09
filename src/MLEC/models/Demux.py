@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch
 from MLEC.models.BertEncoder import BertEncoder
 from MLEC.enums.CorrelationType import CorrelationType
-from MLEC.models.MLECModel import MLECEncoder
+from MLEC.models.MLECEncoder import MLECEncoder
 
 
 class Demux(MLECEncoder):
@@ -14,6 +14,8 @@ class Demux(MLECEncoder):
         lang="English",
         alpha=0.2,
         beta=0.1,
+        embedding_vocab_size=30522,
+        output_size=1,
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -22,15 +24,16 @@ class Demux(MLECEncoder):
         :param alpha: control contribution of each loss function in case of joint training
         """
         super(Demux, self).__init__()
-        self.bert = BertEncoder(lang=lang)
+        self.encoder = BertEncoder(lang=lang)
+        self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
         self.alpha = alpha
         self.beta = beta
 
         self.ffn = nn.Sequential(
-            nn.Linear(self.bert.feature_size, self.bert.feature_size),
+            nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(self.bert.feature_size, 1),
+            nn.Linear(output_size, 1),
         )
 
     def forward(self, batch, device):
@@ -47,7 +50,7 @@ class Demux(MLECEncoder):
         )
 
         # Bert encoder
-        last_hidden_state = self.bert(inputs)
+        last_hidden_state = self.encoder(inputs)
 
         # the embedding clipping, take only the emotions embedding
         last_emotion_state = [
@@ -65,10 +68,6 @@ class Demux(MLECEncoder):
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
-        logits = (
-            self.ffn(last_emotion_state)
-            .squeeze(-1)
-            .index_select(dim=1, index=label_idxs)
-        )
+        logits = self.ffn(last_emotion_state).squeeze(-1)
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets
