@@ -8,6 +8,7 @@ from transformers import (
     BertConfig,
     EncoderDecoderConfig,
 )
+import torch
 
 
 class SpanEmoB2B(MLECDecoder):
@@ -53,7 +54,7 @@ class SpanEmoB2B(MLECDecoder):
         :return: loss, num_rows, y_pred, targets
         """
         inputs, targets, lengths, label_idxs = batch
-        inputs, num_rows = inputs.long().to(device), inputs.size(0)
+        inputs, num_rows = inputs.to(device).to(torch.int64), inputs.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
             device
         )
