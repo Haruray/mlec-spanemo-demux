@@ -9,6 +9,7 @@ from transformers import (
     EncoderDecoderConfig,
 )
 import torch
+import numpy as np
 
 
 class SpanEmoB2B(MLECDecoder):
@@ -83,10 +84,11 @@ class SpanEmoB2B(MLECDecoder):
         for label_input_id in all_label_input_ids:
             emotion_logits.append(outputs_logits[label_input_id])
         # print(outputs)
-        outputs_logits = torch.tensor(emotion_logits).to(device)
+        outputs_logits = torch.tensor(np.array(emotion_logits)).to(device)
         logits = (
             self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
         )
+        print(logits.shape)
         print(logits)
         y_pred = self.compute_pred(logits.to(device))
         logits = outputs[0]
