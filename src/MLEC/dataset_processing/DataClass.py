@@ -28,7 +28,13 @@ class DataClass(Dataset):
                 "dccuchile/bert-base-spanish-wwm-uncased"
             )
 
-        self.inputs, self.lengths, self.label_indices = self.process_data()
+        (
+            self.inputs,
+            self.attention_masks,
+            self.lengths,
+            self.label_indices,
+            self.label_input_ids,
+        ) = self.process_data()
 
     def load_dataset(self):
         """
@@ -48,53 +54,30 @@ class DataClass(Dataset):
             # flat self.label_names
             segment_a = " ".join(self.label_names) + "?"
             print(segment_a)
-        elif self.args["--lang"] == "Arabic":
-            segment_a = "غضب توقع قرف خوف سعادة حب تفأول اليأس حزن اندهاش أو ثقة؟"
-            label_names = [
-                "غضب",
-                "توقع",
-                "قر",
-                "خوف",
-                "سعادة",
-                "حب",
-                "تف",
-                "الياس",
-                "حزن",
-                "اند",
-                "ثقة",
-            ]
 
-        elif self.args["--lang"] == "Spanish":
-            segment_a = "ira anticipaciÃ³n asco miedo alegrÃ­a amor optimismo pesimismo tristeza sorpresa or confianza?"
-            label_names = [
-                "ira",
-                "anticip",
-                "asco",
-                "miedo",
-                "alegr",
-                "amor",
-                "optimismo",
-                "pesim",
-                "tristeza",
-                "sorpresa",
-                "confianza",
-            ]
-
-        inputs, lengths, label_indices = [], [], []
-        for x in tqdm(self.data, desc=desc):
-            x = " ".join(preprocessor(x))
-            x = self.bert_tokeniser.encode_plus(
+        inputs, attention_masks, lengths, label_indices, label_input_ids = (
+            [],
+            [],
+            [],
+            [],
+            [],
+        )
+        for data_idx, data_item in enumerate(tqdm(self.data, desc=desc)):
+            data_item = " ".join(preprocessor(data_item))
+            data_item = self.bert_tokeniser.encode_plus(
                 segment_a,
-                x,
+                data_item,
                 add_special_tokens=True,
                 max_length=self.max_length,
                 pad_to_max_length=True,
                 truncation=True,
             )
-            input_id = x["input_ids"]
-            input_length = len([i for i in x["attention_mask"] if i == 1])
+            input_id = data_item["input_ids"]
+            attention_mask = data_item["attention_mask"]
+            input_length = len([i for i in data_item["attention_mask"] if i == 1])
             inputs.append(input_id)
             lengths.append(input_length)
+            attention_masks.append(attention_mask)
 
             # label indices
             label_idxs = [
@@ -105,26 +88,42 @@ class DataClass(Dataset):
             ]
             label_indices.append(label_idxs)
 
-            # get label ids
-            label_ids = self.bert_tokeniser.encode_plus(
+            # get label id
+            label_input_id = self.bert_tokeniser.encode_plus(
                 segment_a,
                 add_special_tokens=False,
                 max_length=self.max_length,
                 pad_to_max_length=True,
                 truncation=True,
             )["input_ids"]
+            # extract label input ids from self.labels[data_idx] if it is not zero
+            label_input_id = [
+                (
+                    label_input_ids[label_idxs[idx]]
+                    if self.labels[data_idx][idx] == 1
+                    else 0
+                )
+                for idx, _ in enumerate(self.label_names)
+            ]
+            # remove 0s in label_input_ids
+            label_input_id = list(filter(lambda a: a != 0, label_input_ids))
+            label_input_ids.append(label_input_id)
 
         inputs = torch.tensor(inputs, dtype=torch.long)
         data_length = torch.tensor(lengths, dtype=torch.long)
         label_indices = torch.tensor(label_indices, dtype=torch.long)
-        return inputs, data_length, label_indices
+        attention_masks = torch.tensor(attention_masks, dtype=torch.long)
+        label_input_ids = torch.tensor(label_input_ids, dtype=torch.long)
+        return inputs, attention_masks, data_length, label_indices, label_input_ids
 
     def __getitem__(self, index):
         inputs = self.inputs[index]
         labels = self.labels[index]
         label_idxs = self.label_indices[index]
         length = self.lengths[index]
-        return inputs, labels, length, label_idxs
+        label_input_ids = self.label_input_ids[index]
+        attention_masks = self.attention_masks[index]
+        return inputs, attention_masks, labels, length, label_idxs, label_input_ids
 
     def __len__(self):
         return len(self.inputs)

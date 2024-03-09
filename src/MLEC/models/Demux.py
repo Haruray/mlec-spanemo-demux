@@ -43,7 +43,7 @@ class Demux(MLECEncoder):
         :return: loss, num_rows, y_pred, targets
         """
         # prepare inputs and targets
-        inputs, targets, _, label_idxs = batch
+        inputs, attention_masks, targets, lengths, label_idxs, label_input_ids = batch
         inputs, num_rows = inputs.to(device), inputs.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
             device

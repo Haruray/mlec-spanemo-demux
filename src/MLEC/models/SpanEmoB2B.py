@@ -53,17 +53,18 @@ class SpanEmoB2B(MLECDecoder):
         :param device: device to run calculations on
         :return: loss, num_rows, y_pred, targets
         """
-        inputs, targets, lengths, label_idxs = batch
+        inputs, attention_masks, targets, lengths, label_idxs, label_input_ids = batch
         inputs, num_rows = inputs.long().to(device), inputs.size(0)
-        label_idxs, targets = label_idxs[0].long().to(device), targets.long().to(device)
-        print(targets)
+        label_idxs, label_input_ids = label_idxs[0].long().to(
+            device
+        ), label_input_ids.long().to(device)
         outputs = self.model(
             inputs,
-            decoder_input_ids=targets,
+            attention_masks=attention_masks,
+            decoder_input_ids=label_input_ids,
         )
         outputs_logits = outputs.logits
         # print(outputs)
-        print(outputs_logits.shape)
         logits = (
             self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
         )
