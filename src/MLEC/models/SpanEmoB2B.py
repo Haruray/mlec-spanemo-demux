@@ -87,7 +87,7 @@ class SpanEmoB2B(MLECModel):
         for label_input_id in all_label_input_ids:
             emotion_logits.append(outputs_logits[label_input_id])
         # print(outputs)
-        outputs_logits = torch.tensor(np.array(emotion_logits)).to(device)
+        outputs_logits = torch.tensor(emotion_logits).to(device)
         # logits = (
         #     self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
         # )
