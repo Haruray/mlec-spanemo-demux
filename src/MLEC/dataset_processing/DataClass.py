@@ -35,6 +35,7 @@ class DataClass(Dataset):
             self.lengths,
             self.label_indices,
             self.label_input_ids,
+            self.label_attention_masks,
         ) = self.process_data()
 
     def load_dataset(self):
@@ -56,13 +57,14 @@ class DataClass(Dataset):
             segment_a = " ".join(self.label_names) + "?"
             print(segment_a)
 
-        inputs, attention_masks, lengths, label_indices, label_input_ids = (
-            [],
-            [],
-            [],
-            [],
-            [],
-        )
+        (
+            inputs,
+            attention_masks,
+            lengths,
+            label_indices,
+            label_input_ids,
+            label_attention_masks,
+        ) = ([], [], [], [], [], [])
         for data_idx, data_item in enumerate(tqdm(self.data, desc=desc)):
             data_item = " ".join(preprocessor(data_item))
             data_item = self.bert_tokeniser.encode_plus(
@@ -96,13 +98,13 @@ class DataClass(Dataset):
                 max_length=self.max_length,
                 pad_to_max_length=True,
                 truncation=True,
-            )["input_ids"]
+            )
             if len(self.all_label_input_ids) == 0:
-                self.all_label_input_ids = label_input_id
+                self.all_label_input_ids = label_input_id["input_ids"]
             # extract label input ids from self.labels[data_idx] if it is not zero
             label_input_id = [
                 (
-                    label_input_id[label_idxs[idx]]
+                    label_input_id["input_ids"][label_idxs[idx]]
                     if self.labels[data_idx][idx] == 1
                     else 0
                 )
@@ -112,12 +114,32 @@ class DataClass(Dataset):
             label_input_id = list(filter(lambda a: a != 0, label_input_ids))
             label_input_ids.append(label_input_id)
 
+            # do the same for label attention masks
+            label_attention_mask = [
+                (
+                    label_input_id["attention_mask"][label_idxs[idx]]
+                    if self.labels[data_idx][idx] == 1
+                    else 0
+                )
+                for idx, _ in enumerate(self.label_names)
+            ]
+            label_attention_mask = list(filter(lambda a: a != 0, label_attention_mask))
+            label_attention_masks.append(label_attention_mask)
+
         inputs = torch.tensor(inputs, dtype=torch.long)
         data_length = torch.tensor(lengths, dtype=torch.long)
         label_indices = torch.tensor(label_indices, dtype=torch.long)
         attention_masks = torch.tensor(attention_masks, dtype=torch.long)
         label_input_ids = torch.tensor(label_input_ids, dtype=torch.long)
-        return inputs, attention_masks, data_length, label_indices, label_input_ids
+        label_attention_masks = torch.tensor(label_attention_masks, dtype=torch.long)
+        return (
+            inputs,
+            attention_masks,
+            data_length,
+            label_indices,
+            label_input_ids,
+            label_attention_masks,
+        )
 
     def __getitem__(self, index):
         inputs = self.inputs[index]
@@ -126,6 +148,7 @@ class DataClass(Dataset):
         length = self.lengths[index]
         label_input_ids = self.label_input_ids[index]
         attention_masks = self.attention_masks[index]
+        label_attention_masks = self.label_attention_masks[index]
         all_label_input_ids = self.all_label_input_ids
         return (
             inputs,
@@ -134,6 +157,7 @@ class DataClass(Dataset):
             length,
             label_idxs,
             label_input_ids,
+            label_attention_masks,
             all_label_input_ids,
         )
 

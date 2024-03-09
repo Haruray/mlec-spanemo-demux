@@ -61,6 +61,7 @@ class SpanEmoB2B(MLECDecoder):
             lengths,
             label_idxs,
             label_input_ids,
+            label_attention_masks,
             all_label_input_ids,
         ) = batch
         attention_masks = attention_masks.to(device)
@@ -72,6 +73,7 @@ class SpanEmoB2B(MLECDecoder):
             inputs,
             attention_mask=attention_masks,
             decoder_input_ids=label_input_ids,
+            decoder_attention_mask=label_attention_masks,
         )
         outputs_logits = outputs.logits[0][-1].cpu.detach().numpy()
         # get the logits of the all_label_input_ids

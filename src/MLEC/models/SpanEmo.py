@@ -46,6 +46,7 @@ class SpanEmo(MLECEncoder):
             lengths,
             label_idxs,
             label_input_ids,
+            label_attention_masks,
             all_label_input_ids,
         ) = batch
         attention_masks = attention_masks.to(device)
