@@ -105,6 +105,15 @@ class DataClass(Dataset):
             ]
             label_indices.append(label_idxs)
 
+            # get label ids
+            label_ids = self.bert_tokeniser.encode_plus(
+                segment_a,
+                add_special_tokens=False,
+                max_length=self.max_length,
+                pad_to_max_length=True,
+                truncation=True,
+            )["input_ids"]
+
         inputs = torch.tensor(inputs, dtype=torch.long)
         data_length = torch.tensor(lengths, dtype=torch.long)
         label_indices = torch.tensor(label_indices, dtype=torch.long)

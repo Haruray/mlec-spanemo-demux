@@ -65,25 +65,25 @@ print("The number of validation batches: ", len(dev_data_loader))
 # Define Model & Training Pipeline
 #############################################################################
 
-model = SpanEmo(
-    output_dropout=float(args["--output-dropout"]),
-    lang=args["--lang"],
-    embedding_vocab_size=len(train_dataset.bert_tokeniser),
-)
+# model = SpanEmo(
+#     output_dropout=float(args["--output-dropout"]),
+#     lang=args["--lang"],
+#     embedding_vocab_size=len(train_dataset.bert_tokeniser),
+# )
 
-another_model = SpanEmoB2B(
-    output_dropout=float(args["--output-dropout"]),
-    embedding_vocab_size=len(train_dataset.bert_tokeniser),
-)
+# another_model = SpanEmoB2B(
+#     output_dropout=float(args["--output-dropout"]),
+#     embedding_vocab_size=len(train_dataset.bert_tokeniser),
+# )
 
 #############################################################################
 # Start Training
 #############################################################################
-learn = Trainer(
-    another_model,
-    train_data_loader,
-    dev_data_loader,
-    filename=filename,
-    col_names=train_dataset.label_names,
-)
-learn.fit(num_epochs=int(args["--max-epoch"]), args=args, device=device)
+# learn = Trainer(
+#     another_model,
+#     train_data_loader,
+#     dev_data_loader,
+#     filename=filename,
+#     col_names=train_dataset.label_names,
+# )
+# learn.fit(num_epochs=int(args["--max-epoch"]), args=args, device=device)
