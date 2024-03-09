@@ -1,9 +1,9 @@
 import torch.nn as nn
 from MLEC.models.BertEncoder import BertEncoder
-from MLEC.models.MLECEncoder import MLECEncoder
+from MLEC.models.MLECModel import MLECModel
 
 
-class SpanEmo(MLECEncoder):
+class SpanEmo(MLECModel):
     def __init__(
         self,
         output_dropout=0.1,

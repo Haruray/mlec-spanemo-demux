@@ -7,16 +7,12 @@ from MLEC.emotion_corr_weightings.Correlations import Correlations
 from MLEC.enums.CorrelationType import CorrelationType
 
 
-class MLECEncoder(nn.Module):
+class MLECModel(nn.Module):
 
     def __init__(
         self,
-        output_dropout=0.1,
-        lang="English",
         alpha=0.2,
         beta=0.1,
-        joint_loss=True,
-        embedding_vocab_size=30522,
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -24,7 +20,7 @@ class MLECEncoder(nn.Module):
         :param joint_loss: which loss to use cel|corr|cel+corr
         :param alpha: control contribution of each loss function in case of joint training
         """
-        super(MLECEncoder, self).__init__()
+        super(MLECModel, self).__init__()
 
     def forward(self, batch, device):
         """

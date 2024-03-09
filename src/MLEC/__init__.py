@@ -4,7 +4,7 @@ from MLEC.emotion_corr_weightings.Correlations import Correlations
 from MLEC.emotion_corr_weightings.Plutchik import PLUTCHIK_WHEEL_ANGLES
 from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.models.BertEncoder import BertEncoder
-from MLEC.models.MLECEncoder import MLECEncoder
+from MLEC.models.MLECModel import MLECModel
 from MLEC.models.SpanEmo import SpanEmo
 from MLEC.models.Demux import Demux
 from MLEC.trainer.Trainer import Trainer

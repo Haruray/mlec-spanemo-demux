@@ -3,10 +3,10 @@ import torch.nn as nn
 import torch
 from MLEC.models.BertEncoder import BertEncoder
 from MLEC.enums.CorrelationType import CorrelationType
-from MLEC.models.MLECEncoder import MLECEncoder
+from MLEC.models.MLECModel import MLECModel
 
 
-class Demux(MLECEncoder):
+class Demux(MLECModel):
 
     def __init__(
         self,

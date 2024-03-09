@@ -1,8 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from MLEC.models.BertEncoder import BertEncoder
-from MLEC.models.MLECEncoder import MLECEncoder
-from MLEC.models.MLECDecoder import MLECDecoder
+from MLEC.models.MLECModel import MLECModel
 from transformers import (
     EncoderDecoderModel,
     BertConfig,
@@ -12,7 +11,7 @@ import torch
 import numpy as np
 
 
-class SpanEmoB2B(MLECDecoder):
+class SpanEmoB2B(MLECModel):
 
     def __init__(
         self,
@@ -29,7 +28,10 @@ class SpanEmoB2B(MLECDecoder):
         :param joint_loss: which loss to use cel|corr|cel+corr
         :param alpha: control contribution of each loss function in case of joint training
         """
-        super(SpanEmoB2B, self).__init__()
+        super(SpanEmoB2B, self).__init__(
+            alpha=alpha,
+            beta=beta,
+        )
         encoder_config = BertConfig.from_pretrained("bert-base-uncased")
         decoder_config = BertConfig.from_pretrained("bert-base-uncased")
         config = EncoderDecoderConfig.from_encoder_decoder_configs(
