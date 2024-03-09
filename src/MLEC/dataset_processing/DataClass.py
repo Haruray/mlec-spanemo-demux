@@ -92,7 +92,7 @@ class DataClass(Dataset):
             label_indices.append(label_idxs)
 
             # get label id
-            label_input_id = self.bert_tokeniser.encode_plus(
+            label_tokenized = self.bert_tokeniser.encode_plus(
                 segment_a,
                 add_special_tokens=False,
                 max_length=self.max_length,
@@ -100,11 +100,11 @@ class DataClass(Dataset):
                 truncation=True,
             )
             if len(self.all_label_input_ids) == 0:
-                self.all_label_input_ids = label_input_id["input_ids"]
+                self.all_label_input_ids = label_tokenized["input_ids"]
             # extract label input ids from self.labels[data_idx] if it is not zero
             label_input_id = [
                 (
-                    label_input_id["input_ids"][label_idxs[idx]]
+                    label_tokenized["input_ids"][label_idxs[idx]]
                     if self.labels[data_idx][idx] == 1
                     else 0
                 )
@@ -117,7 +117,7 @@ class DataClass(Dataset):
             # do the same for label attention masks
             label_attention_mask = [
                 (
-                    label_input_id["attention_mask"][label_idxs[idx]]
+                    label_tokenized["attention_mask"][label_idxs[idx]]
                     if self.labels[data_idx][idx] == 1
                     else 0
                 )
