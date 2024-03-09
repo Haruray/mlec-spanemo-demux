@@ -99,7 +99,7 @@ class DataClass(Dataset):
             # extract label input ids from self.labels[data_idx] if it is not zero
             label_input_id = [
                 (
-                    label_input_ids[label_idxs[idx]]
+                    label_input_id[label_idxs[idx]]
                     if self.labels[data_idx][idx] == 1
                     else 0
                 )
