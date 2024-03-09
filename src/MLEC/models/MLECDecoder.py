@@ -9,13 +9,6 @@ class MLECDecoder(nn.Module):
 
     def __init__(
         self,
-        d_model,
-        nhead,
-        dim_feedforward,
-        num_layers,
-        lang="English",
-        output_dropout=0.1,
-        embedding_vocab_size=30522,
     ):
         super(MLECDecoder, self).__init__()
 

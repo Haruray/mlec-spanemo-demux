@@ -19,9 +19,7 @@ Options:
     --alpha-loss=<float>              weight used to balance the loss [default: 0.2]
 """
 
-from MLEC import Trainer
-from MLEC import SpanEmo
-from MLEC import DataClass
+from MLEC import Trainer, SpanEmo, DataClass, SpanEmoB2B
 from torch.utils.data import DataLoader
 import torch
 from docopt import docopt
@@ -71,14 +69,18 @@ model = SpanEmo(
     output_dropout=float(args["--output-dropout"]),
     lang=args["--lang"],
     embedding_vocab_size=len(train_dataset.bert_tokeniser),
-    
+)
+
+another_model = SpanEmoB2B(
+    output_dropout=float(args["--output-dropout"]),
+    embedding_vocab_size=len(train_dataset.bert_tokeniser),
 )
 
 #############################################################################
 # Start Training
 #############################################################################
 learn = Trainer(
-    model,
+    another_model,
     train_data_loader,
     dev_data_loader,
     filename=filename,

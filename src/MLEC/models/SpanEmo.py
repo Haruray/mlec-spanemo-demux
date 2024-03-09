@@ -30,7 +30,7 @@ class SpanEmo(MLECEncoder):
             nn.Dropout(p=output_dropout),
             nn.Linear(self.encoder.feature_size, 1),
         )
-        # adjust bert vocab size
+        self.encoder_parameters = self.encoder.parameters()
 
     def forward(self, batch, device):
         """

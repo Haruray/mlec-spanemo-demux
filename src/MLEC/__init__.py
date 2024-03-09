@@ -13,3 +13,4 @@ from MLEC.trainer.EarlyStopping import EarlyStopping
 from MLEC.loss.inter_corr_loss import inter_corr_loss
 from MLEC.loss.intra_corr_loss import intra_corr_loss
 from MLEC.layers.PositionalEncoding import PositionalEncoding
+from MLEC.models.SpanEmoB2B import SpanEmoB2B

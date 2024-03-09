@@ -122,7 +122,7 @@ class Trainer(object):
         """
         optimizer = AdamW(
             [
-                {"params": self.model.bert.parameters()},
+                {"params": self.model.encoder_parameters},
                 {"params": self.model.ffn.parameters(), "lr": float(args["--ffn-lr"])},
             ],
             lr=float(args["--bert-lr"]),
