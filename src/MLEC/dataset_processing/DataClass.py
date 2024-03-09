@@ -65,10 +65,12 @@ class DataClass(Dataset):
             label_input_ids,
             label_attention_masks,
         ) = ([], [], [], [], [], [])
+
         self.all_label_input_ids = [
-            self.bert_tokeniser.encode(label, add_special_tokens=True)["input_ids"]
-            for label in self.label_names
+            self.bert_tokeniser.encode(label_name, add_special_tokens=False)
+            for label_name in self.label_names
         ]
+        
         for data_idx, data_item in enumerate(tqdm(self.data, desc=desc)):
             data_item = " ".join(preprocessor(data_item))
             data_item = self.bert_tokeniser.encode_plus(
