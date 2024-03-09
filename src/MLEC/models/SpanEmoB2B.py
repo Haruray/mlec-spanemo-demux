@@ -69,6 +69,7 @@ class SpanEmoB2B(MLECDecoder):
         attention_masks = attention_masks.to(device)
         label_attention_masks = label_attention_masks.to(device)
         inputs, num_rows = inputs.long().to(device), inputs.size(0)
+        targets = targets.float().to(device)
         label_idxs, label_input_ids = label_idxs[0].long().to(
             device
         ), label_input_ids.long().to(device)
@@ -88,7 +89,7 @@ class SpanEmoB2B(MLECDecoder):
         # logits = (
         #     self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
         # )
-        outputs_logits = outputs_logits.squeeze(-1).view(-1, 11)
+        outputs_logits = outputs_logits.squeeze(-1).view(-1, 11).to(device)
         print(outputs_logits.shape)
         y_pred = self.compute_pred(outputs_logits)
         logits = outputs_logits
