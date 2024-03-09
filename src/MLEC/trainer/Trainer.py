@@ -69,6 +69,7 @@ class Trainer(object):
                 bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
                     device
                 )
+                targets = targets.cpu().numpy()
                 total_loss = (
                     bce_loss * (1 - (self.model.alpha + self.model.beta))
                     + (inter_corr_loss_total * self.model.alpha)
@@ -164,7 +165,6 @@ class Trainer(object):
                 num_rows, y_pred, logits, targets, last_hidden_state = self.model(
                     batch, device
                 )
-                targets = targets.cpu().numpy()
                 inter_corr_loss_total = intra_corr_loss(
                     logits, targets, self.correlations
                 )
@@ -174,6 +174,7 @@ class Trainer(object):
                 bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
                     device
                 )
+                targets = targets.cpu().numpy()
                 total_loss = (
                     bce_loss * (1 - (self.model.alpha + self.model.beta))
                     + (inter_corr_loss_total * self.model.alpha)
