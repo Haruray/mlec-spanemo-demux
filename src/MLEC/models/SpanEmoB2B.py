@@ -84,7 +84,7 @@ class SpanEmoB2B(MLECModel):
         # get logits
         # print(outputs.decoder_hidden_states)
         logits = self.ffn(torch.tensor(outputs.decoder_hidden_states[-1]).to(device))
-        batch_size, sequence_length, _ = outputs.logits.shape
+        batch_size, sequence_lengths, _ = outputs.logits.shape
         if self.config.pad_token_id is None:
             sequence_lengths = -1
         else:
