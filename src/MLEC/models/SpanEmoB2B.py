@@ -90,8 +90,11 @@ class SpanEmoB2B(MLECModel):
         print(probs.shape)
         print(all_label_input_ids[0])
         token_probs = torch.gather(probs, 2, all_label_input_ids[0].unsqueeze(1))
+        print(token_probs.shape)
+        token_probs_reshaped = token_probs.view(-1, token_probs.size(-1))
+        print(token_probs_reshaped.shape)
         # get the predictions
-        y_pred = self.ffn(token_probs)
+        y_pred = self.ffn(token_probs_reshaped)
         print(y_pred.shape)
 
         return num_rows, y_pred, logits, targets, outputs
