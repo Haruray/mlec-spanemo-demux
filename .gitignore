@@ -1,3 +1,2 @@
 configs/*.json
 **/__pycache__/
-data/*.txt
