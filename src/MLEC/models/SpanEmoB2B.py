@@ -43,7 +43,7 @@ class SpanEmoB2B(MLECModel):
         self.model.encoder.resize_token_embeddings(embedding_vocab_size)
         self.model.decoder.resize_token_embeddings(embedding_vocab_size)
         self.ffn = nn.Sequential(
-            nn.Linear(decoder_config.hidden_size, label_size),
+            nn.Linear(decoder_config.hidden_size, decoder_config.hidden_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
             nn.Linear(decoder_config.hidden_size, label_size),
