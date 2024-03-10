@@ -50,7 +50,15 @@ class Trainer(object):
         self.model = self.model.to(device)
         scaler = GradScaler()  # Initialize GradScaler
         pbar = master_bar(range(num_epochs))
-        headers = ["Train_Loss", "Val_Loss", "F1-Macro", "F1-Micro", "JS", "Time"]
+        headers = [
+            "Train_Loss",
+            "Val_Loss",
+            "F1-Macro",
+            "F1-Micro",
+            "JS",
+            "Hamming Loss",
+            "Time",
+        ]
         pbar.write(headers, table=True)
         for epoch in pbar:
             epoch += 1
@@ -61,9 +69,7 @@ class Trainer(object):
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
                 optimizer.zero_grad()
-                with autocast(
-                    device_type="cuda", dtype=torch.float16
-                ):  # Enable autocast
+                with autocast(device=device, dtype=torch.float16):  # Enable autocast
                     num_rows, _, logits, targets, last_hidden_state = self.model(
                         batch, device
                     )
@@ -111,10 +117,10 @@ class Trainer(object):
             stats = [
                 overall_training_loss,
                 overall_val_loss,
-                f1_score(y_true, y_pred, average="macro"),
-                f1_score(y_true, y_pred, average="micro"),
+                f1_score(y_true, y_pred, average="macro", zero_division=1),
+                f1_score(y_true, y_pred, average="micro", zero_division=1),
                 jaccard_score(y_true, y_pred, average="samples", zero_division=1),
-                hamming_loss(y_true, y_pred),
+                hamming_loss(y_true, y_pred, average="samples"),
             ]
 
             for stat in stats:
