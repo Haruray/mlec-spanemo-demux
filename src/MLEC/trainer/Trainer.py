@@ -60,10 +60,6 @@ class Trainer(object):
                 num_rows, _, logits, targets, last_hidden_state = self.model(
                     batch, device
                 )
-                print("logits : ", logits)
-                print("logits shape : ", logits.shape)
-                print("targets : ", targets)
-                print("targets shape : ", targets.shape)
                 inter_corr_loss_total = intra_corr_loss(
                     logits, targets, self.correlations
                 )
