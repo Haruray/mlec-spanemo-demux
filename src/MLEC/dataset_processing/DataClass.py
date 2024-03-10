@@ -70,7 +70,10 @@ class DataClass(Dataset):
             self.bert_tokeniser.encode(label_name, add_special_tokens=False)
             for label_name in self.label_names
         ]
-        
+        self.all_label_input_ids = torch.tensor(
+            self.all_label_input_ids, dtype=torch.long
+        )
+
         for data_idx, data_item in enumerate(tqdm(self.data, desc=desc)):
             data_item = " ".join(preprocessor(data_item))
             data_item = self.bert_tokeniser.encode_plus(
