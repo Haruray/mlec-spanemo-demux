@@ -43,9 +43,6 @@ class SpanEmoB2B(MLECModel):
         self.model.encoder.resize_token_embeddings(embedding_vocab_size)
         self.model.decoder.resize_token_embeddings(embedding_vocab_size)
         self.ffn = nn.Sequential(
-            nn.Linear(decoder_config.hidden_size, decoder_config.hidden_size),
-            nn.Tanh(),
-            nn.Dropout(p=output_dropout),
             nn.Linear(decoder_config.hidden_size, label_size),
         )
         self.encoder_parameters = self.model.encoder.parameters()
@@ -83,6 +80,13 @@ class SpanEmoB2B(MLECModel):
         )
         # get logits
         # print(outputs.decoder_hidden_states)
+        hidden_states = (
+            outputs.decoder_hidden_states[-1]
+            .clone()
+            .detach()
+            .requires_grad_(True)
+            .to(device)
+        )
         logits = self.ffn(torch.tensor(outputs.decoder_hidden_states[-1]).to(device))
         batch_size, sequence_lengths, _ = outputs.logits.shape
         if self.config.pad_token_id is None:
