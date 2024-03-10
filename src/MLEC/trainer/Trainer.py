@@ -10,6 +10,7 @@ from MLEC.loss.inter_corr_loss import inter_corr_loss
 from MLEC.loss.intra_corr_loss import intra_corr_loss
 from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.emotion_corr_weightings.Correlations import Correlations
+from torch.cuda.amp import GradScaler, autocast
 
 
 class Trainer(object):
@@ -46,6 +47,7 @@ class Trainer(object):
         """
         optimizer, scheduler, step_scheduler_on_batch = self.optimizer(args)
         self.model = self.model.to(device)
+        scaler = GradScaler()  # Initialize GradScaler
         pbar = master_bar(range(num_epochs))
         headers = ["Train_Loss", "Val_Loss", "F1-Macro", "F1-Micro", "JS", "Time"]
         pbar.write(headers, table=True)
@@ -57,28 +59,34 @@ class Trainer(object):
             for step, batch in enumerate(
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
-                num_rows, _, logits, targets, last_hidden_state = self.model(
-                    batch, device
-                )
-                inter_corr_loss_total = intra_corr_loss(
-                    logits, targets, self.correlations
-                )
-                intra_corr_loss_total = inter_corr_loss(
-                    logits, targets, self.correlations
-                )
-                bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
-                    device
-                )
-                targets = targets.cpu().numpy()
-                total_loss = (
-                    bce_loss * (1 - (self.model.alpha + self.model.beta))
-                    + (inter_corr_loss_total * self.model.alpha)
-                    + (intra_corr_loss_total * self.model.beta)
-                )
+                with autocast():  # Enable autocast
+                    num_rows, _, logits, targets, last_hidden_state = self.model(
+                        batch, device
+                    )
+                    inter_corr_loss_total = intra_corr_loss(
+                        logits, targets, self.correlations
+                    )
+                    intra_corr_loss_total = inter_corr_loss(
+                        logits, targets, self.correlations
+                    )
+                    bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
+                        device
+                    )
+                    targets = targets.cpu().numpy()
+                    total_loss = (
+                        bce_loss * (1 - (self.model.alpha + self.model.beta))
+                        + (inter_corr_loss_total * self.model.alpha)
+                        + (intra_corr_loss_total * self.model.beta)
+                    )
                 overall_training_loss += total_loss.item() * num_rows
-                total_loss.backward()
+                scaler.scale(total_loss).backward()  # Scale the loss value
+                # total_loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
-                optimizer.step()
+                # optimizer.step()
+                scaler.step(
+                    optimizer
+                )  # Unscales the gradients and calls optimizer.step()
+                scaler.update()  # Updates the scale for next iteration
                 if step_scheduler_on_batch:
                     scheduler.step()
                 optimizer.zero_grad()
