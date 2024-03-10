@@ -93,6 +93,7 @@ class SpanEmoB2B(MLECModel):
         print(token_probs.shape)
         token_probs_reshaped = token_probs.view(-1, token_probs.size(-1))
         print(token_probs_reshaped.shape)
+        print(self.compute_pred(token_probs_reshaped))
         # get the predictions
         y_pred = self.ffn(token_probs_reshaped)
         print(y_pred.shape)
