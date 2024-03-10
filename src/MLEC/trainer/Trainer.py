@@ -170,6 +170,7 @@ class Trainer(object):
         :returns: overall_val_loss (float), accuracies (dict{'acc': value}, preds (dict)
         """
         current_size = len(self.val_data_loader.dataset)
+        scaler = GradScaler()  # Initialize GradScaler
         preds_dict = {
             "y_true": np.zeros([current_size, 11]),
             "y_pred": np.zeros([current_size, 11]),
@@ -183,24 +184,25 @@ class Trainer(object):
                     self.val_data_loader, parent=pbar, leave=(pbar is not None)
                 )
             ):
-                num_rows, y_pred, logits, targets, last_hidden_state = self.model(
-                    batch, device
-                )
-                inter_corr_loss_total = intra_corr_loss(
-                    logits, targets, self.correlations
-                )
-                intra_corr_loss_total = inter_corr_loss(
-                    logits, targets, self.correlations
-                )
-                bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
-                    device
-                )
-                targets = targets.cpu().numpy()
-                total_loss = (
-                    bce_loss * (1 - (self.model.alpha + self.model.beta))
-                    + (inter_corr_loss_total * self.model.alpha)
-                    + (intra_corr_loss_total * self.model.beta)
-                )
+                with autocast():  # Enable autocast
+                    num_rows, y_pred, logits, targets, last_hidden_state = self.model(
+                        batch, device
+                    )
+                    inter_corr_loss_total = intra_corr_loss(
+                        logits, targets, self.correlations
+                    )
+                    intra_corr_loss_total = inter_corr_loss(
+                        logits, targets, self.correlations
+                    )
+                    bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
+                        device
+                    )
+                    targets = targets.cpu().numpy()
+                    total_loss = (
+                        bce_loss * (1 - (self.model.alpha + self.model.beta))
+                        + (inter_corr_loss_total * self.model.alpha)
+                        + (intra_corr_loss_total * self.model.beta)
+                    )
                 overall_val_loss += total_loss.item() * num_rows
 
                 current_index = index_dict
@@ -211,6 +213,8 @@ class Trainer(object):
                     current_index : current_index + num_rows, :
                 ] = y_pred
                 index_dict += num_rows
+                # Free unused GPU memory
+                torch.cuda.empty_cache()
 
         overall_val_loss = overall_val_loss / len(self.val_data_loader.dataset)
         return overall_val_loss, preds_dict

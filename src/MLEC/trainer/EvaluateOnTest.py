@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 import torch
 import time
+import torch.cuda
 
 
 class EvaluateOnTest(object):
@@ -53,6 +54,7 @@ class EvaluateOnTest(object):
                     current_index : current_index + num_rows, :
                 ] = y_pred
                 index_dict += num_rows
+                torch.cuda.empty_cache()
 
         y_true, y_pred = preds_dict["y_true"], preds_dict["y_pred"]
         str_stats = []
