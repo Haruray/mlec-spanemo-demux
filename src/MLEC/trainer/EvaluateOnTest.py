@@ -46,6 +46,7 @@ class EvaluateOnTest(object):
                 num_rows, y_pred, logits, targets, last_hidden_state = self.model(
                     batch, device
                 )
+                targets = targets.cpu().numpy()
                 current_index = index_dict
                 preds_dict["y_true"][
                     current_index : current_index + num_rows, :
