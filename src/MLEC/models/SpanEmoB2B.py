@@ -33,7 +33,9 @@ class SpanEmoB2B(MLECModel):
             beta=beta,
         )
         encoder_config = BertConfig.from_pretrained("bert-base-uncased")
-        decoder_config = BertConfig.from_pretrained("bert-base-uncased")
+        decoder_config = BertConfig.from_pretrained(
+            "bert-base-uncased", output_hidden_states=True
+        )
         config = EncoderDecoderConfig.from_encoder_decoder_configs(
             encoder_config, decoder_config
         )
