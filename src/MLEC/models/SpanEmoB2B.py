@@ -87,9 +87,12 @@ class SpanEmoB2B(MLECModel):
         # get probabilities of tokens
         probs = F.softmax(logits, dim=-1)
         # get the probabilities of the labels based on all_label_input_ids
-        label_probs = torch.gather(
-            probs, 1, all_label_input_ids.unsqueeze(2).expand(-1, -1, probs.size(-1))
-        )
+        print(probs.shape)
+        label_probs = probs[
+            torch.arange(probs.size(0)).unsqueeze(1),
+            label_idxs.unsqueeze(1),
+            all_label_input_ids.unsqueeze(1),
+        ]
         # get the predictions
         y_pred = self.ffn(label_probs)
 
