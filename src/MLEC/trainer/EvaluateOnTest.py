@@ -1,6 +1,6 @@
 from fastprogress.fastprogress import format_time, master_bar, progress_bar
 from transformers import AdamW, get_linear_schedule_with_warmup
-from sklearn.metrics import f1_score, jaccard_score
+from sklearn.metrics import f1_score, jaccard_score, hamming_loss
 import torch.nn.functional as F
 import numpy as np
 import torch
@@ -42,7 +42,9 @@ class EvaluateOnTest(object):
                     self.test_data_loader, parent=pbar, leave=(pbar is not None)
                 )
             ):
-                _, num_rows, y_pred, targets = self.model(batch, device)
+                num_rows, y_pred, logits, targets, last_hidden_state = self.model(
+                    batch, device
+                )
                 current_index = index_dict
                 preds_dict["y_true"][
                     current_index : current_index + num_rows, :
@@ -58,6 +60,7 @@ class EvaluateOnTest(object):
             f1_score(y_true, y_pred, average="macro"),
             f1_score(y_true, y_pred, average="micro"),
             jaccard_score(y_true, y_pred, average="samples"),
+            hamming_loss(y_true, y_pred),
         ]
 
         for stat in stats:
@@ -67,5 +70,5 @@ class EvaluateOnTest(object):
                 else str(stat) if isinstance(stat, int) else f"{stat:.4f}"
             )
         str_stats.append(format_time(time.time() - start_time))
-        headers = ["F1-Macro", "F1-Micro", "JS", "Time"]
+        headers = ["F1-Macro", "F1-Micro", "JS", "Hamming Loss", "Time"]
         print(" ".join("{}: {}".format(*k) for k in zip(headers, str_stats)))
