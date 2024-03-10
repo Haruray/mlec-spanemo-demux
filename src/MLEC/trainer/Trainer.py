@@ -69,7 +69,7 @@ class Trainer(object):
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
                 optimizer.zero_grad()
-                with autocast(device=device, dtype=torch.float16):  # Enable autocast
+                with autocast():  # Enable autocast
                     num_rows, _, logits, targets, last_hidden_state = self.model(
                         batch, device
                     )
