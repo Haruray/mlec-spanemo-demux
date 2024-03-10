@@ -83,10 +83,8 @@ class SpanEmoB2B(MLECModel):
         )
         # get logits
         # print(outputs.decoder_hidden_states)
-        print(torch.tensor(outputs.decoder_hidden_states[0]).shape)
-        print(torch.tensor(outputs.decoder_hidden_states[1]).shape)
 
-        logits = self.ffn(torch.tensor(outputs.decoder_hidden_states).to(device))
+        logits = self.ffn(torch.tensor(outputs.decoder_hidden_states[-1]).to(device))
         # get probabilities of tokens
         # get the predictions
         y_pred = self.compute_pred(logits)
