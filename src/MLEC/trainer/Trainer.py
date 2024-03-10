@@ -60,7 +60,10 @@ class Trainer(object):
             for step, batch in enumerate(
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
-                with autocast():  # Enable autocast
+                optimizer.zero_grad()
+                with autocast(
+                    device_type="cuda", dtype=torch.float16
+                ):  # Enable autocast
                     num_rows, _, logits, targets, last_hidden_state = self.model(
                         batch, device
                     )
@@ -91,7 +94,7 @@ class Trainer(object):
                 scaler.update()  # Updates the scale for next iteration
                 if step_scheduler_on_batch:
                     scheduler.step()
-                optimizer.zero_grad()
+
                 # Free unused GPU memory
                 torch.cuda.empty_cache()
 
@@ -110,7 +113,7 @@ class Trainer(object):
                 overall_val_loss,
                 f1_score(y_true, y_pred, average="macro"),
                 f1_score(y_true, y_pred, average="micro"),
-                jaccard_score(y_true, y_pred, average="samples"),
+                jaccard_score(y_true, y_pred, average="samples", zero_division=1),
                 hamming_loss(y_true, y_pred),
             ]
 
