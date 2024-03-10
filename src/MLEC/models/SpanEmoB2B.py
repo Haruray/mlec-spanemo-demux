@@ -41,13 +41,10 @@ class SpanEmoB2B(MLECModel):
         self.model.encoder.resize_token_embeddings(embedding_vocab_size)
         self.model.decoder.resize_token_embeddings(embedding_vocab_size)
         self.ffn = nn.Sequential(
-            nn.Linear(
-                batch_size,
-                batch_size,
-            ),
+            nn.Linear(decoder_config.n_embd, label_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(batch_size, 1),
+            nn.Linear(decoder_config.n_embd, label_size),
         )
         self.encoder_parameters = self.model.encoder.parameters()
         self.decoder_parameters = self.model.decoder.parameters()
@@ -83,16 +80,9 @@ class SpanEmoB2B(MLECModel):
             decoder_attention_mask=label_attention_masks,
         )
         # get logits
-        logits = outputs.logits
+        logits = self.ffn(outputs.logits)
         # get probabilities of tokens
-        probs = F.softmax(logits, dim=-1)
-        # get the probabilities of the labels based on all_label_input_ids with expected shape (batch, label_size)
-        token_probs = probs[
-            torch.arange(probs.size(0)).unsqueeze(1), all_label_input_ids
-        ]
-        print(token_probs.shape)
-        print(token_probs)
         # get the predictions
-        y_pred = self.compute_pred(token_probs)
+        y_pred = self.compute_pred(logits)
 
         return num_rows, y_pred, logits, targets, outputs
