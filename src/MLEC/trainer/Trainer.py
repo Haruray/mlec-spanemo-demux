@@ -11,6 +11,7 @@ from MLEC.loss.intra_corr_loss import intra_corr_loss
 from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.emotion_corr_weightings.Correlations import Correlations
 from torch.cuda.amp import GradScaler, autocast
+import torch.cuda
 
 
 class Trainer(object):
@@ -81,6 +82,7 @@ class Trainer(object):
                 overall_training_loss += total_loss.item() * num_rows
                 scaler.scale(total_loss).backward()  # Scale the loss value
                 # total_loss.backward()
+                scaler.unscale_(optimizer)
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 # optimizer.step()
                 scaler.step(
@@ -90,6 +92,8 @@ class Trainer(object):
                 if step_scheduler_on_batch:
                     scheduler.step()
                 optimizer.zero_grad()
+                # Free unused GPU memory
+                torch.cuda.empty_cache()
 
             if not step_scheduler_on_batch:
                 scheduler.step()
