@@ -82,13 +82,13 @@ class SpanEmoB2B(MLECModel):
             decoder_attention_mask=label_attention_masks,
         )
         # get logits
-        logits = outputs[0]
+        logits = outputs.pooler_output
         # get probabilities of tokens
         probs = F.softmax(logits, dim=-1)
         # get the probabilities of the labels based on all_label_input_ids
-        label_probs = torch.gather(probs, 1, all_label_input_ids.unsqueeze(-1)).squeeze(
-            -1
-        )
+        label_probs = torch.gather(
+            probs, 1, torch.tensor(all_label_input_ids).unsqueeze(-1)
+        ).squeeze(-1)
         # get the predictions
         y_pred = self.ffn(label_probs)
 
