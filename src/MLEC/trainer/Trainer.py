@@ -120,7 +120,7 @@ class Trainer(object):
                 f1_score(y_true, y_pred, average="macro", zero_division=1),
                 f1_score(y_true, y_pred, average="micro", zero_division=1),
                 jaccard_score(y_true, y_pred, average="samples", zero_division=1),
-                hamming_loss(y_true, y_pred, average="samples"),
+                hamming_loss(y_true, y_pred),
             ]
 
             for stat in stats:
