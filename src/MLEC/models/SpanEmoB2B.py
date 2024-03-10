@@ -36,10 +36,10 @@ class SpanEmoB2B(MLECModel):
         decoder_config = BertConfig.from_pretrained(
             "bert-base-uncased", output_hidden_states=True
         )
-        config = EncoderDecoderConfig.from_encoder_decoder_configs(
+        self.config = EncoderDecoderConfig.from_encoder_decoder_configs(
             encoder_config, decoder_config
         )
-        self.model = EncoderDecoderModel(config)
+        self.model = EncoderDecoderModel(self.config)
         self.model.encoder.resize_token_embeddings(embedding_vocab_size)
         self.model.decoder.resize_token_embeddings(embedding_vocab_size)
         self.ffn = nn.Sequential(
@@ -83,10 +83,20 @@ class SpanEmoB2B(MLECModel):
         )
         # get logits
         # print(outputs.decoder_hidden_states)
-
         logits = self.ffn(torch.tensor(outputs.decoder_hidden_states[-1]).to(device))
+        batch_size, sequence_length, _ = outputs.logits.shape
+        sequence_lengths = (
+            torch.eq(inputs, self.config.pad_token_id).int().argmax(-1) - 1
+        )
+        sequence_lengths = sequence_lengths % inputs.shape[-1]
+        sequence_lengths = sequence_lengths.to(device)
+
+        pooled_logits = logits[
+            torch.arange(batch_size, device=device), sequence_lengths
+        ]
+        print(pooled_logits.shape)
         # get probabilities of tokens
         # get the predictions
-        y_pred = self.compute_pred(logits)
+        y_pred = self.compute_pred(pooled_logits)
 
-        return num_rows, y_pred, logits, targets, outputs
+        return num_rows, y_pred, pooled_logits, targets, outputs
