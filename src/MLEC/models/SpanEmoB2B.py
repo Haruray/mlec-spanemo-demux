@@ -81,19 +81,15 @@ class SpanEmoB2B(MLECModel):
             decoder_input_ids=label_input_ids,
             decoder_attention_mask=label_attention_masks,
         )
-        outputs_logits = outputs.logits.view(-1, outputs.logits.shape[-1])
-        # get the logits of the all_label_input_ids
-        emotion_logits = []
-        for label_input_id in all_label_input_ids:
-            emotion_logits.append(outputs_logits[label_input_id])
-        # print(outputs)
-        outputs_logits = torch.tensor(emotion_logits).to(device)
-        # logits = (
-        #     self.ffn(outputs_logits).squeeze(-1).index_select(dim=1, index=label_idxs)
-        # )
-        outputs_logits = outputs_logits.squeeze(-1).view(-1, 11).to(device)
-        print(outputs_logits.shape)
-        y_pred = self.compute_pred(outputs_logits)
-        logits = outputs_logits
+        # get logits
+        logits = outputs[0]
+        # get probabilities of tokens
+        probs = F.softmax(logits, dim=-1)
+        # get the probabilities of the labels based on all_label_input_ids
+        label_probs = torch.gather(probs, 1, all_label_input_ids.unsqueeze(-1)).squeeze(
+            -1
+        )
+        # get the predictions
+        y_pred = self.ffn(label_probs)
 
         return num_rows, y_pred, logits, targets, outputs
