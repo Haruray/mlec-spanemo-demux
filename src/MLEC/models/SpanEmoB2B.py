@@ -85,16 +85,23 @@ class SpanEmoB2B(MLECModel):
         # print(outputs.decoder_hidden_states)
         logits = self.ffn(torch.tensor(outputs.decoder_hidden_states[-1]).to(device))
         batch_size, sequence_length, _ = outputs.logits.shape
-        sequence_lengths = (
-            torch.eq(inputs, self.config.pad_token_id).int().argmax(-1) - 1
-        )
-        sequence_lengths = sequence_lengths % inputs.shape[-1]
-        sequence_lengths = sequence_lengths.to(device)
+        if self.config.pad_token_id is None:
+            sequence_lengths = -1
+        else:
+            if inputs is not None:
+                # if no pad token found, use modulo instead of reverse indexing for ONNX compatibility
+                sequence_lengths = (
+                    torch.eq(inputs, self.config.pad_token_id).int().argmax(-1) - 1
+                )
+                sequence_lengths = sequence_lengths % inputs.shape[-1]
+                sequence_lengths = sequence_lengths.to(device)
+            else:
+                sequence_lengths = -1
 
         pooled_logits = logits[
             torch.arange(batch_size, device=device), sequence_lengths
         ]
-        print(pooled_logits.shape)
+
         # get probabilities of tokens
         # get the predictions
         y_pred = self.compute_pred(pooled_logits)
