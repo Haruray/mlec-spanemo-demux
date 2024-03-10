@@ -118,7 +118,29 @@ class Correlations:
         # if decreasing, then return 1 - correlation
         if decreasing:
             return torch.tensor(
-                [[1 - self.corrs[i, j] for i in _is] for j in js]
+                [
+                    [
+                        (
+                            1 - self.corrs[i, j]
+                            if self.corr_type == CorrelationType.PLUTCHIK
+                            else 1
+                        )
+                        for i in _is
+                    ]
+                    for j in js
+                ]
             ).squeeze()
         else:
-            return torch.tensor([[self.corrs[i, j] for i in _is] for j in js]).squeeze()
+            return torch.tensor(
+                [
+                    [
+                        (
+                            self.corrs[i, j]
+                            if self.corr_type == CorrelationType.PLUTCHIK
+                            else 1
+                        )
+                        for i in _is
+                    ]
+                    for j in js
+                ]
+            ).squeeze()

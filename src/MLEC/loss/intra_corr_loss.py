@@ -44,6 +44,9 @@ def intra_corr_loss(y_hat, y_true, correlations: Correlations, reduction="mean")
             ).sum()
             # calculate the number of comparisons y_o.size(0) ^2 - y_o.size(0)
             num_comparisons = y_o.size(0) ** 2 - y_o.size(0)
+            if num_comparisons == 0:
+                num_comparisons = 1
+            # print(num_comparisons)
             loss_present[idx] = output.div(num_comparisons)
 
         if y_z.nelement() > 0:
