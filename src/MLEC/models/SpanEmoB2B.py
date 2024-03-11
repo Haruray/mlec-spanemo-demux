@@ -86,7 +86,6 @@ class SpanEmoB2B(MLECModel):
             target_attention_masks.to(device),
         )
 
-        all_label_input_ids = all_label_input_ids.to(device)
         label_idxs = label_idxs[0].long().to(device)
 
         outputs = self.model(
