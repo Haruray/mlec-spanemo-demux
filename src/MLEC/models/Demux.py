@@ -15,6 +15,7 @@ class Demux(MLECModel):
         alpha=0.2,
         beta=0.1,
         embedding_vocab_size=30522,
+        label_size=11,
         output_size=1,
     ):
         """casting multi-label emotion classification as span-extraction
@@ -31,10 +32,10 @@ class Demux(MLECModel):
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
 
         self.ffn = nn.Sequential(
-            nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
+            nn.Linear(label_size, label_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(self.encoder.feature_size, 1),
+            nn.Linear(label_size, 1),
         )
 
     def forward(self, batch, device):

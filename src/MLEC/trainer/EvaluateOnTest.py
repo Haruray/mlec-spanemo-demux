@@ -79,9 +79,9 @@ class EvaluateOnTest(object):
         y_true, y_pred = preds_dict["y_true"], preds_dict["y_pred"]
         str_stats = []
         stats = [
-            f1_score(y_true, y_pred, average="macro"),
-            f1_score(y_true, y_pred, average="micro"),
-            jaccard_score(y_true, y_pred, average="samples"),
+            f1_score(y_true, y_pred, average="macro", zero_division=1),
+            f1_score(y_true, y_pred, average="micro", zero_division=1),
+            jaccard_score(y_true, y_pred, average="samples", zero_division=1),
             hamming_loss(y_true, y_pred),
         ]
 
