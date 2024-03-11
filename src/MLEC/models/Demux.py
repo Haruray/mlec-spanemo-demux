@@ -84,6 +84,9 @@ class Demux(MLECModel):
         logits = torch.stack(
             [self.ffn(cluster_stack).max(1)[0] for cluster_stack in last_emotion_state],
             dim=1,
-        ).squeeze(-1)
+        )
+        print(logits.size())
+        logits = logits.squeeze(-1)
+        print(logits.size())
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets, last_hidden_state
