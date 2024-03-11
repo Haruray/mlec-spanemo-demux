@@ -33,31 +33,43 @@ class SpanEmo(MLECModel):
         )
         self.encoder_parameters = self.encoder.parameters()
 
-    def forward(self, batch, device):
+    def forward(
+        self,
+        input_ids,
+        input_attention_masks,
+        targets,
+        target_input_ids,
+        target_attention_masks,
+        device,
+        **kwargs
+    ):
         """
         :param batch: tuple of (input_ids, labels, length, label_indices)
         :param device: device to run calculations on
         :return: loss, num_rows, y_pred, targets
         """
+        lengths, label_idxs, *_ = kwargs
         # prepare inputs and targets
-        (
-            inputs,
-            attention_masks,
-            targets,
-            lengths,
-            label_idxs,
-            label_input_ids,
-            label_attention_masks,
-            all_label_input_ids,
-        ) = batch
-        attention_masks = attention_masks.to(device)
-        inputs, num_rows = inputs.to(device), inputs.size(0)
+        # (
+        #     inputs,
+        #     attention_masks,
+        #     targets,
+        #     lengths,
+        #     label_idxs,
+        #     label_input_ids,
+        #     label_attention_masks,
+        #     all_label_input_ids,
+        # ) = batch
+        input_attention_masks = input_attention_masks.to(device)
+        input_ids, num_rows = input_ids.to(device), input_ids.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
             device
         )
 
         # Bert encoder
-        last_hidden_state = self.encoder(inputs, attention_mask=attention_masks)
+        last_hidden_state = self.encoder(
+            input_ids, attention_mask=input_attention_masks
+        )
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
         logits = (

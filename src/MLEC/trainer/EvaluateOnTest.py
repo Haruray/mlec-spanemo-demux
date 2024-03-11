@@ -43,8 +43,25 @@ class EvaluateOnTest(object):
                     self.test_data_loader, parent=pbar, leave=(pbar is not None)
                 )
             ):
+                (
+                    inputs,
+                    attention_masks,
+                    targets,
+                    lengths,
+                    label_idxs,
+                    label_input_ids,
+                    label_attention_masks,
+                    all_label_input_ids,
+                ) = batch
+
                 num_rows, y_pred, logits, targets, last_hidden_state = self.model(
-                    batch, device
+                    input_ids=inputs,
+                    input_attention_masks=attention_masks,
+                    targets=targets,
+                    device=device,
+                    lengths=lengths,
+                    label_idxs=label_idxs,
+                    all_label_input_ids=all_label_input_ids,
                 )
                 targets = targets.cpu().numpy()
                 current_index = index_dict

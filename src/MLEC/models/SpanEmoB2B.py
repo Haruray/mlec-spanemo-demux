@@ -48,35 +48,52 @@ class SpanEmoB2B(MLECModel):
         self.encoder_parameters = self.model.encoder.parameters()
         self.decoder_parameters = self.model.decoder.parameters()
 
-    def forward(self, batch, device):
+    def forward(
+        self,
+        input_ids,
+        input_attention_masks,
+        targets,
+        target_input_ids,
+        target_attention_masks,
+        device,
+        **kwargs,
+    ):
         """
         :param batch: tuple of (input_ids, labels, length, label_indices)
         :param device: device to run calculations on
         :return: loss, num_rows, y_pred, targets
         """
-        (
-            inputs,
-            attention_masks,
-            targets,
-            lengths,
-            label_idxs,
-            label_input_ids,
-            label_attention_masks,
-            all_label_input_ids,
-        ) = batch
-        all_label_input_ids = all_label_input_ids.long().to(device)
-        attention_masks = attention_masks.to(device)
-        label_attention_masks = label_attention_masks.to(device)
-        inputs, num_rows = inputs.long().to(device), inputs.size(0)
+        # (
+        #     inputs,
+        #     attention_masks,
+        #     targets,
+        #     lengths,
+        #     label_idxs,
+        #     label_input_ids,
+        #     label_attention_masks,
+        #     all_label_input_ids,
+        # ) = batch
+        lengths, label_idxs, all_label_input_ids = kwargs
+        # make sure everything is on the right device
+        input_ids, input_attention_masks, num_rows = (
+            input_ids.long().to(device),
+            input_ids.size(0),
+            input_attention_masks.to(device),
+        )
         targets = targets.float().to(device)
-        label_idxs, label_input_ids = label_idxs[0].long().to(
-            device
-        ), label_input_ids.long().to(device)
+        target_input_ids, target_attention_masks = (
+            target_input_ids.long().to(device),
+            target_attention_masks.to(device),
+        )
+
+        all_label_input_ids = all_label_input_ids.long().to(device)
+        label_idxs = label_idxs[0].long().to(device)
+
         outputs = self.model(
-            inputs,
-            attention_mask=attention_masks,
-            decoder_input_ids=label_input_ids,
-            decoder_attention_mask=label_attention_masks,
+            input_ids,
+            attention_mask=input_attention_masks,
+            decoder_input_ids=target_input_ids,
+            decoder_attention_mask=target_attention_masks,
         )
         # get logits
         # print(outputs.decoder_hidden_states)
@@ -92,12 +109,12 @@ class SpanEmoB2B(MLECModel):
         if self.config.pad_token_id is None:
             sequence_lengths = -1
         else:
-            if inputs is not None:
+            if input_ids is not None:
                 # if no pad token found, use modulo instead of reverse indexing for ONNX compatibility
                 sequence_lengths = (
-                    torch.eq(inputs, self.config.pad_token_id).int().argmax(-1) - 1
+                    torch.eq(input_ids, self.config.pad_token_id).int().argmax(-1) - 1
                 )
-                sequence_lengths = sequence_lengths % inputs.shape[-1]
+                sequence_lengths = sequence_lengths % input_ids.shape[-1]
                 sequence_lengths = sequence_lengths.to(device)
             else:
                 sequence_lengths = -1

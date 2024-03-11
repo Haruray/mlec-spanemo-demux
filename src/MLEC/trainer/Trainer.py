@@ -70,8 +70,27 @@ class Trainer(object):
             ):
                 optimizer.zero_grad()
                 with autocast():  # Enable autocast
+                    (
+                        inputs,
+                        attention_masks,
+                        targets,
+                        lengths,
+                        label_idxs,
+                        label_input_ids,
+                        label_attention_masks,
+                        all_label_input_ids,
+                    ) = batch
+
                     num_rows, _, logits, targets, last_hidden_state = self.model(
-                        batch, device
+                        input_ids=inputs,
+                        input_attention_masks=attention_masks,
+                        targets=targets,
+                        target_input_ids=label_input_ids,
+                        target_attention_masks=label_attention_masks,
+                        device=device,
+                        lengths=lengths,
+                        label_idxs=label_idxs,
+                        all_label_input_ids=all_label_input_ids,
                     )
                     inter_corr_loss_total = intra_corr_loss(
                         logits, targets, self.correlations
@@ -185,8 +204,25 @@ class Trainer(object):
                 )
             ):
                 with autocast():  # Enable autocast
+                    (
+                        inputs,
+                        attention_masks,
+                        targets,
+                        lengths,
+                        label_idxs,
+                        label_input_ids,
+                        label_attention_masks,
+                        all_label_input_ids,
+                    ) = batch
+
                     num_rows, y_pred, logits, targets, last_hidden_state = self.model(
-                        batch, device
+                        input_ids=inputs,
+                        input_attention_masks=attention_masks,
+                        targets=targets,
+                        device=device,
+                        lengths=lengths,
+                        label_idxs=label_idxs,
+                        all_label_input_ids=all_label_input_ids,
                     )
                     inter_corr_loss_total = intra_corr_loss(
                         logits, targets, self.correlations
