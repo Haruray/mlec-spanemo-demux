@@ -32,10 +32,10 @@ class Demux(MLECModel):
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
 
         self.ffn = nn.Sequential(
-            nn.Linear(label_size, label_size),
+            nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(label_size, 1),
+            nn.Linear(self.encoder.feature_size, 1),
         )
         self.encoder_parameters = self.encoder.parameters()
 
@@ -70,7 +70,10 @@ class Demux(MLECModel):
         )
 
         # take only the emotion embeddings
-        last_emotion_state = last_hidden_state[:, label_idxs, :]
+        last_emotion_state = last_hidden_state.squeeze(-1).index_select(
+            index=label_idxs,
+        )
+
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
         logits = self.ffn(last_emotion_state).squeeze(-1)
