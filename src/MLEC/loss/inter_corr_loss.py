@@ -22,7 +22,27 @@ def inter_corr_loss(y_hat, y_true, correlations: Correlations, reduction="mean")
         # if there are no ones in y, then loss is zero
         # no ones in y means no positive examples
         if y_o.nelement() > 0:
-            output = torch.exp(torch.sub(y_h[y_z], y_h[y_o][:, None]).squeeze(-1)).sum()
+            output = torch.exp(
+                torch.sub(y_h[y_z], y_h[y_o][:, None])
+                .mul(
+                    correlations.get(
+                        index=(
+                            (
+                                (list(correlations.col_names[y_o.squeeze().tolist()]))
+                                if type(y_o.squeeze().tolist()) is not int
+                                else [correlations.col_names[y_o.squeeze().tolist()]]
+                            ),
+                            (
+                                list(correlations.col_names[y_z.squeeze().tolist()])
+                                if type(y_z.squeeze().tolist()) is not int
+                                else [correlations.col_names[y_z.squeeze().tolist()]]
+                            ),
+                        ),
+                        decreasing=True,
+                    ).to(device)
+                )
+                .squeeze(-1)
+            ).sum()
             num_comparisons = y_z.size(0) * y_o.size(0)
             # multiply the output by the correlation matrix
             # self.correlations.get() and the arguments are the emotions that are being compared
