@@ -88,6 +88,8 @@ class Demux(MLECModel):
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
+        print(last_emotion_state)
+        print(last_emotion_state[0].size())
         logits = torch.stack(
             [self.ffn(cluster_stack).max(1)[0] for cluster_stack in last_emotion_state],
             dim=1,
