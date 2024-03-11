@@ -88,5 +88,6 @@ class Demux(MLECModel):
         print(logits.size())
         logits = logits.squeeze(-1)
         print(logits.size())
+        print(logits[0])
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets, last_hidden_state
