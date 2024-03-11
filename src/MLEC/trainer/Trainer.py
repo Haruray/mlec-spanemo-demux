@@ -53,6 +53,8 @@ class Trainer(object):
         headers = [
             "Train_Loss",
             "Val_Loss",
+            "Train Inter loss",
+            "Train Intra loss",
             "F1-Macro",
             "F1-Micro",
             "JS",
@@ -65,6 +67,8 @@ class Trainer(object):
             start_time = time.time()
             self.model.train()
             overall_training_loss = 0.0
+            overall_inter_loss = 0.0
+            overall_intra_loss = 0.0
             for step, batch in enumerate(
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
@@ -108,6 +112,8 @@ class Trainer(object):
                         + (intra_corr_loss_total * self.model.beta)
                     )
                 overall_training_loss += total_loss.item() * num_rows
+                overall_inter_loss += inter_corr_loss_total.item() * num_rows
+                overall_intra_loss += intra_corr_loss_total.item() * num_rows
                 scaler.scale(total_loss).backward()  # Scale the loss value
                 # total_loss.backward()
                 scaler.unscale_(optimizer)
@@ -129,6 +135,13 @@ class Trainer(object):
             overall_training_loss = overall_training_loss / len(
                 self.train_data_loader.dataset
             )
+            overall_training_inter_loss = overall_inter_loss / len(
+                self.train_data_loader.dataset
+            )
+            overall_training_intra_loss = overall_intra_loss / len(
+                self.train_data_loader.dataset
+            )
+
             overall_val_loss, pred_dict = self.predict(device, pbar)
             y_true, y_pred = pred_dict["y_true"], pred_dict["y_pred"]
 
@@ -136,6 +149,8 @@ class Trainer(object):
             stats = [
                 overall_training_loss,
                 overall_val_loss,
+                overall_training_inter_loss,
+                overall_training_intra_loss,
                 f1_score(y_true, y_pred, average="macro", zero_division=1),
                 f1_score(y_true, y_pred, average="micro", zero_division=1),
                 jaccard_score(y_true, y_pred, average="samples", zero_division=1),
