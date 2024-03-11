@@ -69,20 +69,8 @@ class Demux(MLECModel):
             input_ids, attention_mask=input_attention_masks
         )
 
-        # the embedding clipping, take only the emotions embedding
-        last_emotion_state = [
-            torch.stack(
-                [
-                    last_hidden_state.index_select(
-                        dim=1, index=inds.to(last_hidden_state.device)
-                    ).mean(1)
-                    for inds in emo_inds
-                ],
-                dim=1,
-            )
-            for emo_inds in label_idxs
-        ]
-
+        # take only the emotion embeddings
+        last_emotion_state = last_hidden_state[:, label_idxs, :]
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
         logits = self.ffn(last_emotion_state).squeeze(-1)
