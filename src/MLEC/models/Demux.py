@@ -71,6 +71,7 @@ class Demux(MLECModel):
 
         # take only the emotion embeddings
         last_emotion_state = last_hidden_state.squeeze(-1).index_select(
+            dim=1,
             index=label_idxs,
         )
 
