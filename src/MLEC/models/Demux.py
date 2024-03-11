@@ -39,31 +39,35 @@ class Demux(MLECModel):
         )
         self.encoder_parameters = self.encoder.parameters()
 
-    def forward(self, batch, device):
+    def forward(
+        self,
+        input_ids,
+        input_attention_masks,
+        targets,
+        target_input_ids=None,
+        target_attention_masks=None,
+        device="cuda:0",
+        **kwargs
+    ):
         """
         :param batch: tuple of (input_ids, labels, length, label_indices)
         :param device: device to run calculations on
         :return: loss, num_rows, y_pred, targets
         """
         # prepare inputs and targets
-        (
-            inputs,
-            attention_masks,
-            targets,
-            lengths,
-            label_idxs,
-            label_input_ids,
-            label_attention_masks,
-            all_label_input_ids,
-        ) = batch
-        attention_masks = attention_masks.to(device)
-        inputs, num_rows = inputs.to(device), inputs.size(0)
+        lengths = kwargs.get("lengths", None)
+        label_idxs = kwargs.get("label_idxs", None)
+
+        input_attention_masks = input_attention_masks.to(device)
+        input_ids, num_rows = input_ids.to(device), input_ids.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
             device
         )
 
         # Bert encoder
-        last_hidden_state = self.encoder(inputs)
+        last_hidden_state = self.encoder(
+            input_ids, attention_mask=input_attention_masks
+        )
 
         # the embedding clipping, take only the emotions embedding
         last_emotion_state = [
