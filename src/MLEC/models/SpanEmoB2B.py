@@ -81,10 +81,12 @@ class SpanEmoB2B(MLECModel):
             input_ids.size(0),
         )
         targets = targets.float().to(device)
-        target_input_ids, target_attention_masks = (
-            target_input_ids.long().to(device),
-            target_attention_masks.to(device),
-        )
+
+        if (target_input_ids is not None) and (target_attention_masks is not None):
+            target_input_ids, target_attention_masks = (
+                target_input_ids.long().to(device),
+                target_attention_masks.to(device),
+            )
 
         outputs = self.model(
             input_ids,

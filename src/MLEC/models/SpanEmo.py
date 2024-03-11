@@ -38,9 +38,9 @@ class SpanEmo(MLECModel):
         input_ids,
         input_attention_masks,
         targets,
-        target_input_ids,
-        target_attention_masks,
-        device,
+        target_input_ids=None,
+        target_attention_masks=None,
+        device="cuda:0",
         **kwargs
     ):
         """
