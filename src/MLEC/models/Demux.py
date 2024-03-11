@@ -34,7 +34,7 @@ class Demux(MLECModel):
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(output_size, 1),
+            nn.Linear(self.encoder.feature_size, 1),
         )
 
     def forward(self, batch, device):
