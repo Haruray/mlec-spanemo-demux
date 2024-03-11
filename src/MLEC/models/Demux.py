@@ -60,9 +60,7 @@ class Demux(MLECModel):
 
         input_attention_masks = input_attention_masks.to(device)
         input_ids, num_rows = input_ids.to(device), input_ids.size(0)
-        label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
-            device
-        )
+        label_idxs, targets = label_idxs.long().to(device), targets.float().to(device)
 
         # Bert encoder
         last_hidden_state = self.encoder(
@@ -70,10 +68,16 @@ class Demux(MLECModel):
         )
 
         # take only the emotion embeddings
-        last_emotion_state = last_hidden_state.squeeze(-1).index_select(
-            dim=1,
-            index=label_idxs,
-        )
+        last_emotion_state = [
+            torch.stack(
+                [
+                    last_hidden_state.index_select(dim=1, index=inds).mean(1)
+                    for inds in emo_inds
+                ],
+                dim=1,
+            )
+            for emo_inds in label_idxs
+        ]
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
