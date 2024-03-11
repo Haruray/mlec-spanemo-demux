@@ -37,6 +37,7 @@ class Demux(MLECModel):
             nn.Dropout(p=output_dropout),
             nn.Linear(label_size, 1),
         )
+        self.encoder_parameters = self.encoder.parameters()
 
     def forward(self, batch, device):
         """
