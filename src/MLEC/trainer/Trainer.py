@@ -219,6 +219,8 @@ class Trainer(object):
                         input_ids=inputs,
                         input_attention_masks=attention_masks,
                         targets=targets,
+                        target_input_ids=inputs,
+                        target_attention_masks=attention_masks,
                         device=device,
                         lengths=lengths,
                         label_idxs=label_idxs,
