@@ -121,7 +121,7 @@ class Correlations:
                 [
                     [
                         (
-                            1 - self.corrs[i, j]
+                            (1 - self.corrs[i, j])
                             if self.corr_type == CorrelationType.PLUTCHIK
                             else 1
                         )
