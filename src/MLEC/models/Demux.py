@@ -17,6 +17,7 @@ class Demux(MLECModel):
         embedding_vocab_size=30522,
         label_size=11,
         output_size=1,
+        device="cuda:0",
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -28,7 +29,7 @@ class Demux(MLECModel):
             alpha=alpha,
             beta=beta,
         )
-        self.encoder = BertEncoder(lang=lang)
+        self.encoder = BertEncoder(lang=lang).bert.to(device)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
 
         self.ffn = nn.Sequential(
@@ -36,7 +37,7 @@ class Demux(MLECModel):
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
             nn.Linear(self.encoder.feature_size, 1),
-        )
+        ).to(device)
         self.encoder_parameters = self.encoder.parameters()
 
     def forward(
