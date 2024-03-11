@@ -48,7 +48,8 @@ class SpanEmo(MLECModel):
         :param device: device to run calculations on
         :return: loss, num_rows, y_pred, targets
         """
-        lengths, label_idxs, *_ = kwargs
+        lengths = kwargs.get("lengths", None)
+        label_idxs = kwargs.get("label_idxs", None)
         # prepare inputs and targets
         # (
         #     inputs,
