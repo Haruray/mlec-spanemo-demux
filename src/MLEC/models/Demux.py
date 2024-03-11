@@ -69,9 +69,6 @@ class Demux(MLECModel):
         if targets is not None:
             targets = targets.float().to(device)
 
-        # check input_ids and input_attention_masks device
-        print(input_ids.device)
-        print(input_attention_masks.device)
         # Bert encoder
         last_hidden_state = self.encoder(
             input_ids, attention_mask=input_attention_masks

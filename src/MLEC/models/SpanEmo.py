@@ -11,6 +11,7 @@ class SpanEmo(MLECModel):
         alpha=0.2,
         beta=0.1,
         embedding_vocab_size=30522,
+        device="cuda:0",
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -24,13 +25,14 @@ class SpanEmo(MLECModel):
         )
         self.encoder = BertEncoder(lang=lang)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
+        self.encoder.bert.to(device)
 
         self.ffn = nn.Sequential(
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
             nn.Linear(self.encoder.feature_size, 1),
-        )
+        ).to(device)
         self.encoder_parameters = self.encoder.parameters()
 
     def forward(
