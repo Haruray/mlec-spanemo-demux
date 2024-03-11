@@ -113,7 +113,7 @@ class DataClass(Dataset):
                 " ".join(current_target_label_names),
                 add_special_tokens=True,
                 max_length=self.max_length,
-                pad_to_max_length=True,
+                padding="max_length",
                 truncation=True,
             )
             label_input_ids.append(label_input_id["input_ids"])
