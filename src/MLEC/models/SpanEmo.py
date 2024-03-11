@@ -35,7 +35,7 @@ class SpanEmo(MLECModel):
 
     def forward(
         self,
-        inputs,
+        input_ids,
         input_attention_masks,
         targets,
         target_input_ids=None,
@@ -61,14 +61,14 @@ class SpanEmo(MLECModel):
         #     all_label_input_ids,
         # ) = batch
         input_attention_masks = input_attention_masks.to(device)
-        inputs, num_rows = inputs.to(device), inputs.size(0)
+        input_ids, num_rows = input_ids.to(device), input_ids.size(0)
         label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
             device
         )
 
         # Bert encoder
         last_hidden_state = self.encoder(
-            inputs, attention_mask=input_attention_masks
+            input_ids, attention_mask=input_attention_masks
         )
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones

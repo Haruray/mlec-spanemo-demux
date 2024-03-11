@@ -82,7 +82,7 @@ class Trainer(object):
                     ) = batch
 
                     num_rows, _, logits, targets, last_hidden_state = self.model(
-                        inputs=inputs,
+                        input_ids=inputs,
                         input_attention_masks=attention_masks,
                         targets=targets,
                         target_input_ids=label_input_ids,
@@ -216,7 +216,7 @@ class Trainer(object):
                     ) = batch
 
                     num_rows, y_pred, logits, targets, last_hidden_state = self.model(
-                        inputs=inputs,
+                        input_ids=inputs,
                         input_attention_masks=attention_masks,
                         targets=targets,
                         device=device,
