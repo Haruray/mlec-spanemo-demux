@@ -81,7 +81,7 @@ class DataClass(Dataset):
                 data_item,
                 add_special_tokens=True,
                 max_length=self.max_length,
-                pad_to_max_length=True,
+                padding="max_length",
                 truncation=True,
             )
             input_id = data_item["input_ids"]

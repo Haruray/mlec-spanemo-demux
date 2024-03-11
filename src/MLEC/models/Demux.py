@@ -43,7 +43,7 @@ class Demux(MLECModel):
         self,
         input_ids,
         input_attention_masks,
-        targets,
+        targets=None,
         target_input_ids=None,
         target_attention_masks=None,
         device="cuda:0",
@@ -60,7 +60,12 @@ class Demux(MLECModel):
 
         input_attention_masks = input_attention_masks.to(device)
         input_ids, num_rows = input_ids.to(device), input_ids.size(0)
-        label_idxs, targets = label_idxs.long().to(device), targets.float().to(device)
+
+        if label_idxs is not None:
+            label_idxs = label_idxs.long().to(device)
+
+        if targets is not None:
+            targets = targets.float().to(device)
 
         # Bert encoder
         last_hidden_state = self.encoder(
