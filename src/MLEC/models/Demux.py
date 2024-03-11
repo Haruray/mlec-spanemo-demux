@@ -87,4 +87,4 @@ class Demux(MLECModel):
         # select span of labels to compare them with ground truth ones
         logits = self.ffn(last_emotion_state).squeeze(-1)
         y_pred = self.compute_pred(logits)
-        return num_rows, y_pred, logits, targets
+        return num_rows, y_pred, logits, targets, last_hidden_state
