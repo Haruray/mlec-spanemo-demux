@@ -29,8 +29,9 @@ class Demux(MLECModel):
             alpha=alpha,
             beta=beta,
         )
-        self.encoder = BertEncoder(lang=lang).bert.to(device)
+        self.encoder = BertEncoder(lang=lang)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
+        self.encoder.bert.to(device)
 
         self.ffn = nn.Sequential(
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
