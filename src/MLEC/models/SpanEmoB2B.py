@@ -77,8 +77,8 @@ class SpanEmoB2B(MLECModel):
         # make sure everything is on the right device
         input_ids, input_attention_masks, num_rows = (
             input_ids.long().to(device),
-            input_ids.size(0),
             input_attention_masks.to(device),
+            input_ids.size(0),
         )
         targets = targets.float().to(device)
         target_input_ids, target_attention_masks = (
