@@ -50,7 +50,7 @@ class SpanEmoB2B(MLECModel):
 
     def forward(
         self,
-        input_ids,
+        inputs,
         input_attention_masks,
         targets,
         target_input_ids=None,
@@ -75,10 +75,10 @@ class SpanEmoB2B(MLECModel):
         # ) = batch
         lengths, label_idxs, all_label_input_ids = kwargs
         # make sure everything is on the right device
-        input_ids, input_attention_masks, num_rows = (
-            input_ids.long().to(device),
+        inputs, input_attention_masks, num_rows = (
+            inputs.long().to(device),
             input_attention_masks.to(device),
-            input_ids.size(0),
+            inputs.size(0),
         )
         targets = targets.float().to(device)
 
@@ -89,7 +89,7 @@ class SpanEmoB2B(MLECModel):
             )
 
         outputs = self.model(
-            input_ids=input_ids,
+            inputs,
             attention_mask=input_attention_masks,
             decoder_input_ids=target_input_ids,
             decoder_attention_mask=target_attention_masks,
@@ -108,12 +108,12 @@ class SpanEmoB2B(MLECModel):
         if self.config.pad_token_id is None:
             sequence_lengths = -1
         else:
-            if input_ids is not None:
+            if inputs is not None:
                 # if no pad token found, use modulo instead of reverse indexing for ONNX compatibility
                 sequence_lengths = (
-                    torch.eq(input_ids, self.config.pad_token_id).int().argmax(-1) - 1
+                    torch.eq(inputs, self.config.pad_token_id).int().argmax(-1) - 1
                 )
-                sequence_lengths = sequence_lengths % input_ids.shape[-1]
+                sequence_lengths = sequence_lengths % inputs.shape[-1]
                 sequence_lengths = sequence_lengths.to(device)
             else:
                 sequence_lengths = -1
