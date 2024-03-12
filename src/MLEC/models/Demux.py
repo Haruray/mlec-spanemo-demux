@@ -86,7 +86,7 @@ class Demux(MLECModel):
             )
             for emo_inds in label_idxs
         ]
-        print("agg", last_emotion_state)
+        print("agg", torch.tensor(last_emotion_state).size())
 
         last_emotion_state_2 = torch.stack(
             [
@@ -100,10 +100,10 @@ class Demux(MLECModel):
             ],
             dim=1,
         )
-        print("stack", last_emotion_state_2)
+        print("stack", last_emotion_state_2.size())
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
-        logits = self.ffn(last_emotion_state).squeeze(-1)
+        logits = self.ffn(torch.tensor(last_emotion_state)).squeeze(-1)
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets, last_hidden_state
