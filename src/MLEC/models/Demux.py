@@ -64,7 +64,7 @@ class Demux(MLECModel):
         input_ids, num_rows = input_ids.to(device), input_ids.size(0)
 
         if label_idxs is not None:
-            label_idxs = label_idxs[0].long().to(device)
+            label_idxs = label_idxs.long().to(device)
 
         if targets is not None:
             targets = targets.float().to(device)
@@ -75,7 +75,20 @@ class Demux(MLECModel):
         )
 
         # take only the emotion embeddings
-        last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
+        # last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
+        last_emotion_state = torch.stack(
+            [
+                last_hidden_state.index_select(
+                    dim=1,
+                    index=(torch.cat(inds) if isinstance(inds, list) else inds).to(
+                        device
+                    ),
+                ).mean(1)
+                for inds in label_idxs
+            ],
+            dim=1,
+        )
+        print(last_hidden_state.size())
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
