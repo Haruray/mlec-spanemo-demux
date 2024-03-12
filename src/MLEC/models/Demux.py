@@ -86,7 +86,21 @@ class Demux(MLECModel):
             )
             for emo_inds in label_idxs
         ]
-        print(last_emotion_state)
+        print("agg", last_emotion_state)
+
+        last_emotion_state_2 = torch.stack(
+            [
+                last_hidden_state.index_select(
+                    dim=1,
+                    index=(torch.cat(inds) if isinstance(inds, list) else inds).to(
+                        device
+                    ),
+                ).mean(1)
+                for inds in label_idxs
+            ],
+            dim=1,
+        )
+        print("stack", last_emotion_state_2)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
