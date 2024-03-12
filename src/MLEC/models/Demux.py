@@ -86,7 +86,7 @@ class Demux(MLECModel):
             )
             for emo_inds in label_idxs
         ]
-        print(last_hidden_state.size())
+        print(last_emotion_state)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
