@@ -76,18 +76,16 @@ class Demux(MLECModel):
 
         # take only the emotion embeddings
         # last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
-        last_emotion_state = torch.stack(
-            [
-                last_hidden_state.index_select(
-                    dim=1,
-                    index=(torch.cat(inds) if isinstance(inds, list) else inds).to(
-                        device
-                    ),
-                ).mean(1)
-                for inds in label_idxs
-            ],
-            dim=1,
-        )
+        last_emotion_state = [
+            torch.stack(
+                [
+                    last_hidden_state.index_select(dim=1, index=inds.to(device)).mean(1)
+                    for inds in emo_inds
+                ],
+                dim=1,
+            )
+            for emo_inds in label_idxs
+        ]
         print(last_hidden_state.size())
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
