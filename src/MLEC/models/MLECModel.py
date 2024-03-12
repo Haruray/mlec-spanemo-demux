@@ -13,6 +13,7 @@ class MLECModel(nn.Module):
         self,
         alpha=0.2,
         beta=0.1,
+        device="cuda:0",
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -23,6 +24,7 @@ class MLECModel(nn.Module):
         super(MLECModel, self).__init__()
         self.alpha = alpha
         self.beta = beta
+        self.device = device
 
     def forward(self, batch, device):
         """

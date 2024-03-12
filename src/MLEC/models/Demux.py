@@ -28,10 +28,11 @@ class Demux(MLECModel):
         super(Demux, self).__init__(
             alpha=alpha,
             beta=beta,
+            device=device,
         )
         self.encoder = BertEncoder(lang=lang)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
-        self.encoder.bert.to(device)
+        self.encoder.bert.to(self.device)
 
         self.ffn = nn.Sequential(
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
@@ -48,7 +49,6 @@ class Demux(MLECModel):
         targets=None,
         target_input_ids=None,
         target_attention_masks=None,
-        device="cuda:0",
         **kwargs
     ):
         """
@@ -60,14 +60,14 @@ class Demux(MLECModel):
         lengths = kwargs.get("lengths", None)
         label_idxs = kwargs.get("label_idxs", None)
 
-        input_attention_masks = input_attention_masks.to(device)
-        input_ids, num_rows = input_ids.to(device), input_ids.size(0)
+        input_attention_masks = input_attention_masks.to(self.device)
+        input_ids, num_rows = input_ids.to(self.device), input_ids.size(0)
 
         if label_idxs is not None:
-            label_idxs = label_idxs.long().to(device)
+            label_idxs = label_idxs[0].long().to(self.device)
 
         if targets is not None:
-            targets = targets.float().to(device)
+            targets = targets.float().to(self.device)
 
         # Bert encoder
         last_hidden_state = self.encoder(
@@ -75,35 +75,10 @@ class Demux(MLECModel):
         )
 
         # take only the emotion embeddings
-        # last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
-        last_emotion_state = [
-            torch.stack(
-                [
-                    last_hidden_state.index_select(dim=1, index=inds.to(device)).mean(1)
-                    for inds in emo_inds
-                ],
-                dim=1,
-            )
-            for emo_inds in label_idxs
-        ]
-        print("agg", torch.tensor(last_emotion_state).size())
-
-        last_emotion_state_2 = torch.stack(
-            [
-                last_hidden_state.index_select(
-                    dim=1,
-                    index=(torch.cat(inds) if isinstance(inds, list) else inds).to(
-                        device
-                    ),
-                ).mean(1)
-                for inds in label_idxs
-            ],
-            dim=1,
-        )
-        print("stack", last_emotion_state_2.size())
+        last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
-        logits = self.ffn(torch.tensor(last_emotion_state)).squeeze(-1)
+        logits = self.ffn(last_emotion_state).squeeze(-1)
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets, last_hidden_state

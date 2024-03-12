@@ -60,7 +60,6 @@ class EvaluateOnTest(object):
                     targets=targets,
                     target_input_ids=inputs,
                     target_attention_masks=attention_masks,
-                    device=device,
                     lengths=lengths,
                     label_idxs=label_idxs,
                     all_label_input_ids=all_label_input_ids,

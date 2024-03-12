@@ -22,10 +22,11 @@ class SpanEmo(MLECModel):
         super(SpanEmo, self).__init__(
             alpha=alpha,
             beta=beta,
+            device=device,
         )
         self.encoder = BertEncoder(lang=lang)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
-        self.encoder.bert.to(device)
+        self.encoder.bert.to(self.device)
 
         self.ffn = nn.Sequential(
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
@@ -42,7 +43,6 @@ class SpanEmo(MLECModel):
         targets,
         target_input_ids=None,
         target_attention_masks=None,
-        device="cuda:0",
         **kwargs
     ):
         """
@@ -63,10 +63,10 @@ class SpanEmo(MLECModel):
         #     label_attention_masks,
         #     all_label_input_ids,
         # ) = batch
-        input_attention_masks = input_attention_masks.to(device)
-        input_ids, num_rows = input_ids.to(device), input_ids.size(0)
-        label_idxs, targets = label_idxs[0].long().to(device), targets.float().to(
-            device
+        input_attention_masks = input_attention_masks.to(self.device)
+        input_ids, num_rows = input_ids.to(self.device), input_ids.size(0)
+        label_idxs, targets = label_idxs[0].long().to(self.device), targets.float().to(
+            self.device
         )
 
         # Bert encoder
