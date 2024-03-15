@@ -19,14 +19,13 @@ Options:
     --alpha-loss=<float>              weight used to balance the loss [default: 0.2]
 """
 
-from MLEC import Trainer, SpanEmo, DataClass, SpanEmoB2B
+from MLEC import Trainer, SpanEmo, DataClass, SpanEmoB2B, Demux
 from torch.utils.data import DataLoader
 import torch
 from docopt import docopt
 import datetime
 import json
 import numpy as np
-
 
 args = docopt(__doc__)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -51,16 +50,17 @@ json.dump(args, fw, sort_keys=True, indent=2)
 #####################################################################
 # Define Dataloaders
 #####################################################################
+args["--lang"] = "Indonesia"
 train_dataset = DataClass(args, args["--train-path"])
 train_data_loader = DataLoader(
     train_dataset, batch_size=int(args["--train-batch-size"]), shuffle=True
 )
 print("The number of training batches: ", len(train_data_loader))
-dev_dataset = DataClass(args, args["--dev-path"])
-dev_data_loader = DataLoader(
-    dev_dataset, batch_size=int(args["--eval-batch-size"]), shuffle=False
-)
-print("The number of validation batches: ", len(dev_data_loader))
+# dev_dataset = DataClass(args, args["--dev-path"])
+# dev_data_loader = DataLoader(
+#     dev_dataset, batch_size=int(args["--eval-batch-size"]), shuffle=False
+# )
+# print("The number of validation batches: ", len(dev_data_loader))
 #############################################################################
 # Define Model & Training Pipeline
 #############################################################################
@@ -87,3 +87,36 @@ label_size = len(train_dataset.label_names)
 #     col_names=train_dataset.label_names,
 # )
 # learn.fit(num_epochs=int(args["--max-epoch"]), args=args, device=device)
+
+text = "joy sad angry? I am happy, kind of"
+token = train_dataset.bert_tokeniser.encode_plus(
+    text, max_length=128, pad_to_max_length=True, return_tensors="pt"
+)
+# print tokenized text
+demux = Demux(
+    output_dropout=float(args["--output-dropout"]),
+    lang="Indonesia",
+    embedding_vocab_size=len(train_dataset.bert_tokeniser),
+    alpha=0,
+    beta=0,
+    device=device,
+)
+spanemo = SpanEmo(
+    output_dropout=float(args["--output-dropout"]),
+    lang="Indonesia",
+    embedding_vocab_size=len(train_dataset.bert_tokeniser),
+    alpha=0,
+    beta=0,
+    device=device,
+)
+# output = demux(
+#     input_ids=token["input_ids"],
+#     input_attention_masks=token["attention_mask"],
+#     label_idxs=torch.tensor([1, 2]),
+# )
+output = spanemo(
+    input_ids=token["input_ids"],
+    input_attention_masks=token["attention_mask"],
+    label_idxs=torch.tensor([1, 2]),
+)
+print(output)

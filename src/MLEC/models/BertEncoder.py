@@ -12,12 +12,8 @@ class BertEncoder(nn.Module):
         super(BertEncoder, self).__init__()
         if lang == "English":
             self.bert = BertModel.from_pretrained("bert-base-uncased")
-        elif lang == "Arabic":
-            self.bert = AutoModel.from_pretrained("asafaya/bert-base-arabic")
-        elif lang == "Spanish":
-            self.bert = AutoModel.from_pretrained(
-                "dccuchile/bert-base-spanish-wwm-uncased"
-            )
+        elif lang == "Indonesia":
+            self.bert = AutoModel.from_pretrained("indolem/indobert-base-uncased")
         self.feature_size = self.bert.config.hidden_size
 
     def forward(self, input_ids, attention_mask=None):

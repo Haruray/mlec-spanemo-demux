@@ -24,6 +24,8 @@ The model was trained on an Nvidia GeForce GTX1080 with 11GB memory, Ubuntu 18.1
 
 py src/train_script.py --train-path "C:\DATA\ta\code\Demux-Memo-Simplified\data\2018-E-c-En-train.txt" --dev-path "C:\DATA\ta\code\Demux-Memo-Simplified\data\2018-E-c-En-dev.txt"
 
+py src/train_script.py --train-path "C:\DATA\ta\code\Demux-Memo-Simplified\data\IndonesianCorpus-train.csv" --dev-path "C:\DATA\ta\code\Demux-Memo-Simplified\data\IndonesianCorpus-validate.csv"
+
 # Usage
 
 You first need to download the dataset [Link](https://competitions.codalab.org/competitions/17751#learn_the_details-datasets) for the language of your choice (i.e., English, Arabic or Spanish) and then place them in the data directory `data/`.

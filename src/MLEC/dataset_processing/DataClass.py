@@ -18,16 +18,12 @@ class DataClass(Dataset):
             self.bert_tokeniser = BertTokenizer.from_pretrained(
                 "bert-base-uncased", do_lower_case=True
             )
-            vocab = self.bert_tokeniser.get_vocab()
-            self.bert_tokeniser.add_tokens(["pessimism"])
-        elif args["--lang"] == "Arabic":
+            self.bert_tokeniser.add_tokens(self.label_names)
+        elif args["--lang"] == "Indonesia":
             self.bert_tokeniser = AutoTokenizer.from_pretrained(
-                "asafaya/bert-base-arabic"
+                "indolem/indobert-base-uncased"
             )
-        elif args["--lang"] == "Spanish":
-            self.bert_tokeniser = AutoTokenizer.from_pretrained(
-                "dccuchile/bert-base-spanish-wwm-uncased"
-            )
+            self.bert_tokeniser.add_tokens(self.label_names)
 
         (
             self.inputs,
@@ -42,7 +38,12 @@ class DataClass(Dataset):
         """
         :return: dataset after being preprocessed and tokenised
         """
-        df = pd.read_csv(self.filename, sep="\t")
+        # if the file is a text file, then use sep="\t"
+        if self.filename.endswith(".txt"):
+            df = pd.read_csv(self.filename, sep="\t")
+        else:
+            # if the file is a csv file, then use sep=","
+            df = pd.read_csv(self.filename, sep=",")
         x_train, y_train = df.Tweet.values, df.iloc[:, 2:].values
         # get label names
         label_names = df.columns[2:].tolist()
@@ -52,10 +53,9 @@ class DataClass(Dataset):
         desc = "PreProcessing dataset {}...".format("")
         preprocessor = twitter_preprocessor()
 
-        if self.args["--lang"] == "English":
+        if self.args["--lang"] == "English" or self.args["--lang"] == "Indonesia":
             # flat self.label_names
             segment_a = " ".join(self.label_names) + "?"
-            print(segment_a)
 
         (
             inputs,

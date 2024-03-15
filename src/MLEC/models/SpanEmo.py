@@ -40,7 +40,7 @@ class SpanEmo(MLECModel):
         self,
         input_ids,
         input_attention_masks,
-        targets,
+        targets=None,
         target_input_ids=None,
         target_attention_masks=None,
         **kwargs
@@ -65,9 +65,11 @@ class SpanEmo(MLECModel):
         # ) = batch
         input_attention_masks = input_attention_masks.to(self.device)
         input_ids, num_rows = input_ids.to(self.device), input_ids.size(0)
-        label_idxs, targets = label_idxs[0].long().to(self.device), targets.float().to(
-            self.device
-        )
+        if label_idxs is not None:
+            label_idxs = label_idxs[0].long().to(self.device)
+
+        if targets is not None:
+            targets = targets.float().to(self.device)
 
         # Bert encoder
         last_hidden_state = self.encoder(
