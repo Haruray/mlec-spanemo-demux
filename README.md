@@ -4,6 +4,8 @@ Alhuzali, Chochlakis, i love you, but i don't have strong enough pc or cloud ser
 
 Also fixes some deprecations, so it should run with less warnings now.
 
+P.S : ignore the commit messages. This is for personal use anyway and i can't debug this on my pc.
+
 # SpanEmo
 
 ---
