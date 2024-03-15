@@ -1,3 +1,9 @@
+# Haruray's note
+
+Alhuzali, Chochlakis, i love you, but i don't have strong enough pc or cloud services to run these training codes. So while rearranging the entire codebase, i also added GradScaler so i dont have to pay google for more computing unit.
+
+Also fixes some deprecations, so it should run with less warnings now.
+
 # SpanEmo
 
 ---
