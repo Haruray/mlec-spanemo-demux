@@ -16,10 +16,11 @@ class EvaluateOnTest(object):
     :param model_path: path of the trained model
     """
 
-    def __init__(self, model, test_data_loader, model_path):
+    def __init__(self, model, test_data_loader, model_path, col_names=[]):
         self.model = model
         self.test_data_loader = test_data_loader
         self.model_path = model_path
+        self.col_names = col_names
 
     def predict(self, device="cuda:0", pbar=None):
         """
@@ -32,8 +33,8 @@ class EvaluateOnTest(object):
         self.model.eval()
         current_size = len(self.test_data_loader.dataset)
         preds_dict = {
-            "y_true": np.zeros([current_size, 11]),
-            "y_pred": np.zeros([current_size, 11]),
+            "y_true": np.zeros([current_size, len(self.col_names)]),
+            "y_pred": np.zeros([current_size, len(self.col_names)]),
         }
         start_time = time.time()
         with torch.no_grad():
