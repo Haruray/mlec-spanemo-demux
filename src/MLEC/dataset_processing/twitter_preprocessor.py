@@ -19,6 +19,7 @@ def twitter_preprocessor():
         unpack_contractions=True,
         spell_correct_elong=False,
         demojize=True,
+        demojize_lang="id",
         tokenizer=SocialTokenizer(lowercase=True).tokenize,
     ).pre_process_doc
     return preprocessor
