@@ -6,4 +6,5 @@ transformers == 4.38.2
 pandas == 2.1.4
 tqdm == 4.66.2
 torch == 2.2.1
-git+git://github.com/Haruray/ekphrasis-custom.git
+git+https://github.com/Haruray/ekphrasis-custom.git
+git+https://github.com/Haruray/emot.git

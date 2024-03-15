@@ -18,6 +18,7 @@ def twitter_preprocessor():
         unpack_hashtags=True,
         unpack_contractions=True,
         spell_correct_elong=False,
+        demojize=True,
         tokenizer=SocialTokenizer(lowercase=True).tokenize,
     ).pre_process_doc
     return preprocessor
