@@ -38,6 +38,7 @@ class Trainer(object):
         self.filename = filename
         self.early_stop = EarlyStopping(self.filename, patience=10)
         self.correlations = Correlations(corr_type=corr_type, col_names=col_names)
+        self.col_names = col_names
 
     def fit(self, num_epochs, args, device="cuda:0"):
         """
@@ -205,8 +206,8 @@ class Trainer(object):
         current_size = len(self.val_data_loader.dataset)
         scaler = GradScaler()  # Initialize GradScaler
         preds_dict = {
-            "y_true": np.zeros([current_size, 11]),
-            "y_pred": np.zeros([current_size, 11]),
+            "y_true": np.zeros([current_size, len(self.col_names)]),
+            "y_pred": np.zeros([current_size, len(self.col_names)]),
         }
         overall_val_loss = 0.0
         self.model.eval()
