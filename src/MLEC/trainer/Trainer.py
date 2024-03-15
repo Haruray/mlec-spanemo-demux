@@ -205,7 +205,7 @@ class Trainer(object):
         """
         current_size = len(self.val_data_loader.dataset)
         scaler = GradScaler()  # Initialize GradScaler
-        print("len col names: ", len(self.col_names))
+        # print("len col names: ", len(self.col_names))
         preds_dict = {
             "y_true": np.zeros([current_size, len(self.col_names)]),
             "y_pred": np.zeros([current_size, len(self.col_names)]),
