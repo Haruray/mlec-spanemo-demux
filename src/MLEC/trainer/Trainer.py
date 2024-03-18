@@ -147,16 +147,6 @@ class Trainer(object):
             y_true, y_pred = pred_dict["y_true"], pred_dict["y_pred"]
 
             str_stats = []
-            stats = [
-                overall_training_loss,
-                overall_val_loss,
-                overall_training_inter_loss,
-                overall_training_intra_loss,
-                f1_score(y_true, y_pred, average="macro", zero_division=1),
-                f1_score(y_true, y_pred, average="micro", zero_division=1),
-                jaccard_score(y_true, y_pred, average="samples", zero_division=1),
-                hamming_loss(y_true, y_pred),
-            ]
             stats = {
                 "train_loss": overall_training_loss,
                 "val_loss": overall_val_loss,

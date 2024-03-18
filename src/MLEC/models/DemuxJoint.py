@@ -79,7 +79,7 @@ class DemuxJoint(MLECModel):
         # average the embeddings
         last_emotion_state = last_emotion_state.mean(dim=1)
         # add last_emotion_state to the pooler_output and average them
-        last_emotion_state = (last_emotion_state + pooler_output) / 2
+        last_emotion_state = (last_emotion_state * 0.8 + pooler_output * 0.2)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
