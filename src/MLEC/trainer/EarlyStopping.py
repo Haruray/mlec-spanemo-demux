@@ -11,7 +11,15 @@ class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience.
     Taken from https://github.com/Bjarten/early-stopping-pytorch"""
 
-    def __init__(self, filename, patience=7, verbose=True, delta=0):
+    def __init__(
+        self,
+        filename,
+        patience=7,
+        verbose=True,
+        delta=0,
+        criteria="val_loss",
+        bigger_better=False,
+    ):
         """
         Args:
             patience (int): How long to wait after last time validation loss improved.
@@ -28,17 +36,19 @@ class EarlyStopping:
         self.early_stop = False
         self.delta = delta
         self.cur_date = filename
+        self.criteria = criteria
+        self.bigger_better = bigger_better
 
-    def __call__(self, criteria_score, model, bigger_better=True):
+    def __call__(self, criteria_score, model):
         if self.best_score is None:
             self.best_score = criteria_score
             self.save_checkpoint(model)
-        elif criteria_score - self.best_score <= -self.delta and bigger_better:
+        elif criteria_score - self.best_score <= -self.delta and self.bigger_better:
             self.counter += 1
             print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
-        elif self.best_score - criteria_score <= -self.delta and not bigger_better:
+        elif self.best_score - criteria_score <= -self.delta and not self.bigger_better:
             self.counter += 1
             print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
@@ -47,7 +57,7 @@ class EarlyStopping:
             prev_best = self.best_score
             is_delta_tolerated = (
                 criteria_score < self.best_score
-                if bigger_better
+                if self.bigger_better
                 else criteria_score > self.best_score
             )
             self.best_score = self.best_score if is_delta_tolerated else criteria_score

@@ -157,8 +157,18 @@ class Trainer(object):
                 jaccard_score(y_true, y_pred, average="samples", zero_division=1),
                 hamming_loss(y_true, y_pred),
             ]
+            stats = {
+                "train_loss": overall_training_loss,
+                "val_loss": overall_val_loss,
+                "train_inter_loss": overall_training_inter_loss,
+                "train_intra_loss": overall_training_intra_loss,
+                "f1_Macro": f1_score(y_true, y_pred, average="macro", zero_division=1),
+                "f1_Micro": f1_score(y_true, y_pred, average="micro", zero_division=1),
+                "js": jaccard_score(y_true, y_pred, average="samples", zero_division=1),
+                "hamming_loss": hamming_loss(y_true, y_pred),
+            }
 
-            for stat in stats:
+            for stat in stats.values():
                 str_stats.append(
                     "NA"
                     if stat is None
@@ -167,7 +177,7 @@ class Trainer(object):
             str_stats.append(format_time(time.time() - start_time))
             print("epoch#: ", epoch)
             pbar.write(str_stats, table=True)
-            self.early_stop(overall_val_loss, self.model, bigger_better=False)
+            self.early_stop(stats[self.early_stop.criteria], self.model)
             if self.early_stop.early_stop:
                 print("Early stopping")
                 break
