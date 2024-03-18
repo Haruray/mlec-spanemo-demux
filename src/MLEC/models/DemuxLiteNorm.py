@@ -6,7 +6,7 @@ from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.models.MLECModel import MLECModel
 
 
-class DemuxNorm(MLECModel):
+class DemuxLiteNorm(MLECModel):
 
     def __init__(
         self,
@@ -24,7 +24,7 @@ class DemuxNorm(MLECModel):
         :param joint_loss: which loss to use cel|corr|cel+corr
         :param alpha: control contribution of each loss function in case of joint training
         """
-        super(DemuxNorm, self).__init__(
+        super(DemuxLiteNorm, self).__init__(
             alpha=alpha,
             beta=beta,
             device=device,
@@ -39,7 +39,7 @@ class DemuxNorm(MLECModel):
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
             nn.Tanh(),
             nn.Dropout(p=output_dropout),
-            nn.Linear(self.encoder.feature_size, label_size),
+            nn.Linear(self.encoder.feature_size, 1),
         ).to(device)
 
         self.encoder_parameters = self.encoder.parameters()
@@ -80,7 +80,7 @@ class DemuxNorm(MLECModel):
         last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
         # average the embeddings
         # last_emotion_state = last_emotion_state.mean(dim=1)
-        last_emotion_state = self.layer_norm(last_emotion_state.mean(dim=1))
+        last_emotion_state = self.layer_norm(last_emotion_state)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
