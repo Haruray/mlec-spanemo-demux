@@ -33,12 +33,12 @@ class EarlyStopping:
         if self.best_score is None:
             self.best_score = criteria_score
             self.save_checkpoint(model)
-        elif criteria_score - self.best_score <= self.delta and bigger_better:
+        elif criteria_score - self.best_score <= -self.delta and bigger_better:
             self.counter += 1
             print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
-        elif self.best_score - criteria_score <= self.delta and not bigger_better:
+        elif self.best_score - criteria_score <= -self.delta and not bigger_better:
             self.counter += 1
             print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
