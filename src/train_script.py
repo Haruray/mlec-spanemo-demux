@@ -19,7 +19,7 @@ Options:
     --alpha-loss=<float>              weight used to balance the loss [default: 0.2]
 """
 
-from MLEC import Trainer, SpanEmo, DataClass, SpanEmoB2B, Demux
+from MLEC import Trainer, SpanEmo, DataClass, SpanEmoB2B, DemuxLite, Demux
 from torch.utils.data import DataLoader
 import torch
 from docopt import docopt
@@ -88,10 +88,8 @@ label_size = len(train_dataset.label_names)
 # )
 # learn.fit(num_epochs=int(args["--max-epoch"]), args=args, device=device)
 
-text = "joy sad angry? I am happy, kind of"
-token = train_dataset.bert_tokeniser.encode_plus(
-    text, max_length=128, pad_to_max_length=True, return_tensors="pt"
-)
+text = ["joy sad angry? I am happy, kind of"] * 2
+token = train_dataset.bert_tokeniser(text)
 # print tokenized text
 demux = Demux(
     output_dropout=float(args["--output-dropout"]),
@@ -99,6 +97,7 @@ demux = Demux(
     embedding_vocab_size=len(train_dataset.bert_tokeniser),
     alpha=0,
     beta=0,
+    label_size=3,
     device=device,
 )
 spanemo = SpanEmo(
@@ -115,8 +114,8 @@ spanemo = SpanEmo(
 #     label_idxs=torch.tensor([1, 2]),
 # )
 output = spanemo(
-    input_ids=token["input_ids"],
-    input_attention_masks=token["attention_mask"],
-    label_idxs=torch.tensor([1, 2]),
+    input_ids=torch.tensor(token["input_ids"]),
+    input_attention_masks=torch.tensor(token["attention_mask"]),
+    label_idxs=torch.tensor([[1, 2, 3]]),
 )
 print(output)

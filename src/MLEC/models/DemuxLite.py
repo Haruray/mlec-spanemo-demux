@@ -6,7 +6,7 @@ from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.models.MLECModel import MLECModel
 
 
-class Demux(MLECModel):
+class DemuxLite(MLECModel):
 
     def __init__(
         self,
@@ -16,6 +16,7 @@ class Demux(MLECModel):
         beta=0.1,
         embedding_vocab_size=30522,
         label_size=11,
+        output_size=1,
         device="cuda:0",
     ):
         """casting multi-label emotion classification as span-extraction
@@ -24,7 +25,7 @@ class Demux(MLECModel):
         :param joint_loss: which loss to use cel|corr|cel+corr
         :param alpha: control contribution of each loss function in case of joint training
         """
-        super(Demux, self).__init__(
+        super(DemuxLite, self).__init__(
             alpha=alpha,
             beta=beta,
             device=device,
@@ -39,10 +40,6 @@ class Demux(MLECModel):
             nn.Dropout(p=output_dropout),
             nn.Linear(self.encoder.feature_size, 1),
         ).to(device)
-
-        self.classifier = nn.Sequential(
-            nn.Linear(1, label_size),
-        )
         self.encoder_parameters = self.encoder.parameters()
 
     def forward(
@@ -67,7 +64,7 @@ class Demux(MLECModel):
         input_ids, num_rows = input_ids.to(self.device), input_ids.size(0)
 
         if label_idxs is not None:
-            label_idxs = label_idxs.long().to(self.device)
+            label_idxs = label_idxs[0].long().to(self.device)
 
         if targets is not None:
             targets = targets.float().to(self.device)
@@ -76,28 +73,12 @@ class Demux(MLECModel):
         last_hidden_state = self.encoder(
             input_ids, attention_mask=input_attention_masks
         )
+
         # take only the emotion embeddings
-        last_emotion_state = [
-            torch.stack(
-                [
-                    last_hidden_state.index_select(
-                        dim=1, index=inds.to(last_hidden_state.device)
-                    ).mean(1)
-                    for inds in emo_inds
-                ],
-                dim=1,
-            )
-            for emo_inds in label_idxs
-        ]
+        last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
-        # logits = self.ffn(last_emotion_state).squeeze(-1)
-        logits = torch.stack(
-            [self.ffn(cluster_stack).max(1)[0] for cluster_stack in last_emotion_state],
-            dim=1,
-        ).squeeze(-1)
-        logits = self.classifier(logits)
-
+        logits = self.ffn(last_emotion_state).squeeze(-1)
         y_pred = self.compute_pred(logits)
         return num_rows, y_pred, logits, targets, last_hidden_state

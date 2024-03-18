@@ -6,6 +6,7 @@ from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.models.BertEncoder import BertEncoder
 from MLEC.models.MLECModel import MLECModel
 from MLEC.models.SpanEmo import SpanEmo
+from MLEC.models.DemuxLite import DemuxLite
 from MLEC.models.Demux import Demux
 from MLEC.trainer.Trainer import Trainer
 from MLEC.trainer.EvaluateOnTest import EvaluateOnTest
