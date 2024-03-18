@@ -6,7 +6,7 @@ from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.models.MLECModel import MLECModel
 
 
-class DemuxNorm(MLECModel):
+class DemuxJoint(MLECModel):
 
     def __init__(
         self,
@@ -24,7 +24,7 @@ class DemuxNorm(MLECModel):
         :param joint_loss: which loss to use cel|corr|cel+corr
         :param alpha: control contribution of each loss function in case of joint training
         """
-        super(DemuxNorm, self).__init__(
+        super(DemuxJoint, self).__init__(
             alpha=alpha,
             beta=beta,
             device=device,
@@ -32,8 +32,6 @@ class DemuxNorm(MLECModel):
         self.encoder = BertEncoder(lang=lang)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
         self.encoder.bert.to(self.device)
-
-        self.layer_norm = nn.LayerNorm(self.encoder.feature_size).to(device)
 
         self.ffn = nn.Sequential(
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
@@ -72,15 +70,16 @@ class DemuxNorm(MLECModel):
             targets = targets.float().to(self.device)
 
         # Bert encoder
-        last_hidden_state, _ = self.encoder(
+        last_hidden_state, pooler_output = self.encoder(
             input_ids, attention_mask=input_attention_masks
         )
 
         # take only the emotion embeddings
         last_emotion_state = last_hidden_state.index_select(dim=1, index=label_idxs)
         # average the embeddings
-        # last_emotion_state = last_emotion_state.mean(dim=1)
-        last_emotion_state = self.layer_norm(last_emotion_state.mean(dim=1))
+        last_emotion_state = last_emotion_state.mean(dim=1)
+        # add last_emotion_state to the pooler_output and average them
+        last_emotion_state = (last_emotion_state + pooler_output) / 2
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
