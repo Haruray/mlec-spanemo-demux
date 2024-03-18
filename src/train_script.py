@@ -122,7 +122,7 @@ emorec = EmoRec(
 #     input_attention_masks=token["attention_mask"],
 #     label_idxs=torch.tensor([1, 2]),
 # )
-output = emorec(
+output = demux(
     input_ids=torch.tensor(token["input_ids"]),
     input_attention_masks=torch.tensor(token["attention_mask"]),
     label_idxs=torch.tensor([[1, 2, 3]]),

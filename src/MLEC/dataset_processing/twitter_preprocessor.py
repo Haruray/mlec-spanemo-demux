@@ -2,7 +2,7 @@ from ekphrasis.classes.tokenizer import SocialTokenizer
 from ekphrasis.classes.preprocessor import TextPreProcessor
 
 
-def twitter_preprocessor(lang="English"):
+def twitter_preprocessor(lang="English", demojize=True):
     preprocessor = TextPreProcessor(
         normalize=["url", "email", "phone", "user"],
         annotate={
@@ -18,7 +18,7 @@ def twitter_preprocessor(lang="English"):
         unpack_hashtags=True,
         unpack_contractions=True,
         spell_correct_elong=False,
-        demojize=True,
+        demojize=demojize,
         demojize_lang="id" if lang == "Indonesia" else "en",
         tokenizer=SocialTokenizer(lowercase=True).tokenize,
     ).pre_process_doc
