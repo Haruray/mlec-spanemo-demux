@@ -36,7 +36,7 @@ class Trainer(object):
         self.train_data_loader = train_data_loader
         self.val_data_loader = val_data_loader
         self.filename = filename
-        self.early_stop = EarlyStopping(self.filename, patience=10)
+        self.early_stop = EarlyStopping(self.filename, patience=10, delta=0.01)
         self.correlations = Correlations(corr_type=corr_type, col_names=col_names)
         self.col_names = col_names
 
