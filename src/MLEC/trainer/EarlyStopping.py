@@ -26,33 +26,45 @@ class EarlyStopping:
         self.counter = 0
         self.best_score = None
         self.early_stop = False
-        self.val_loss_min = np.Inf
         self.delta = delta
         self.cur_date = filename
 
-    def __call__(self, val_loss, model):
-        score = -val_loss
+    def __call__(self, criteria_score, model, bigger_better=True):
         if self.best_score is None:
-            self.best_score = score
-            self.save_checkpoint(val_loss, model)
-        elif score < self.best_score + self.delta:
+            self.best_score = criteria_score
+            self.save_checkpoint(model)
+        elif criteria_score - self.best_score <= self.delta and bigger_better:
+            self.counter += 1
+            print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+            if self.counter >= self.patience:
+                self.early_stop = True
+        elif self.best_score - criteria_score <= self.delta and not bigger_better:
             self.counter += 1
             print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
-            self.best_score = score if score > self.best_score else self.best_score
-            self.save_checkpoint(val_loss, model)
+            prev_best = self.best_score
+            is_delta_tolerated = (
+                criteria_score < self.best_score
+                if bigger_better
+                else criteria_score > self.best_score
+            )
+            self.best_score = self.best_score if is_delta_tolerated else criteria_score
+            self.save_checkpoint(
+                model,
+                delta_tolerated=is_delta_tolerated,
+                prev_best=prev_best,
+            )
             self.counter = 0
 
-    def save_checkpoint(self, val_loss, model):
+    def save_checkpoint(self, model, delta_tolerated=False, prev_best=np.inf):
         """Saves model when validation loss decrease."""
         if self.verbose:
-            if val_loss > self.val_loss_min:
+            if delta_tolerated:
                 print("Delta tolerated. Saving model ...")
             else:
                 print(
-                    f"Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ..."
+                    f"Validation loss decreased ({prev_best:.6f} --> {self.best_score:.6f}).  Saving model ..."
                 )
-                self.val_loss_min = val_loss
         torch.save(model.state_dict(), "../models/" + self.cur_date + "_checkpoint.pt")
