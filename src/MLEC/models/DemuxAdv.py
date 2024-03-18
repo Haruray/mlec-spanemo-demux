@@ -65,12 +65,10 @@ class DemuxAdv(MLECModel):
 
         if label_idxs is not None:
             label_idxs = label_idxs[0].long().to(self.device)
-            print(label_idxs)
             # add "0" element to label_idxs tensor
             label_idxs = torch.cat(
                 [label_idxs, torch.tensor([0]).to(self.device)], dim=0
             )
-            print(label_idxs)
 
         if targets is not None:
             targets = targets.float().to(self.device)
