@@ -10,7 +10,8 @@ from MLEC.models.EmoRec import EmoRec
 from MLEC.models.DemuxLite import DemuxLite
 from MLEC.models.Demux import Demux
 from MLEC.models.DemuxAdv import DemuxAdv
-from MLEC.models.DemuxLiteNorm import DemuxNorm
+from MLEC.models.DemuxLiteNorm import DemuxLiteNorm
+from MLEC.models.DemuxNorm import DemuxNorm
 from MLEC.trainer.Trainer import Trainer
 from MLEC.trainer.EvaluateOnTest import EvaluateOnTest
 from MLEC.trainer.EarlyStopping import EarlyStopping
