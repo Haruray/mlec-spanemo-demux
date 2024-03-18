@@ -17,6 +17,8 @@ class DemuxJoint(MLECModel):
         embedding_vocab_size=30522,
         label_size=11,
         device="cuda:0",
+        pool_percentage=0.2,
+        emot_embed_percentage=0.8,
     ):
         """casting multi-label emotion classification as span-extraction
         :param output_dropout: The dropout probability for output layer
@@ -32,6 +34,8 @@ class DemuxJoint(MLECModel):
         self.encoder = BertEncoder(lang=lang)
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
         self.encoder.bert.to(self.device)
+        self.pool_percentage = pool_percentage
+        self.emot_embed_percentage = emot_embed_percentage
 
         self.ffn = nn.Sequential(
             nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
@@ -79,7 +83,10 @@ class DemuxJoint(MLECModel):
         # average the embeddings
         last_emotion_state = last_emotion_state.mean(dim=1)
         # add last_emotion_state to the pooler_output and average them
-        last_emotion_state = (last_emotion_state * 0.8 + pooler_output * 0.2)
+        last_emotion_state = (
+            last_emotion_state * self.emot_embed_percentage
+            + pooler_output * self.pool_percentage
+        )
 
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
