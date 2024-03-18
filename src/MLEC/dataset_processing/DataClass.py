@@ -51,7 +51,7 @@ class DataClass(Dataset):
 
     def process_data(self):
         desc = "PreProcessing dataset {}...".format("")
-        preprocessor = twitter_preprocessor()
+        preprocessor = twitter_preprocessor(lang=self.args["--lang"])
 
         if self.args["--lang"] == "English" or self.args["--lang"] == "Indonesia":
             # flat self.label_names
