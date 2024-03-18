@@ -19,7 +19,7 @@ Options:
     --alpha-loss=<float>              weight used to balance the loss [default: 0.2]
 """
 
-from MLEC import Trainer, SpanEmo, DataClass, SpanEmoB2B, DemuxLite, Demux, EmoRec
+from MLEC import Trainer, SpanEmo, DataClass, SpanEmoB2B, DemuxLite, Demux, EmoRec, DemuxAdv
 from torch.utils.data import DataLoader
 import torch
 from docopt import docopt
@@ -100,6 +100,15 @@ demux = Demux(
     label_size=3,
     device=device,
 )
+demuxadv = DemuxAdv(
+    output_dropout=float(args["--output-dropout"]),
+    lang="Indonesia",
+    embedding_vocab_size=len(train_dataset.bert_tokeniser),
+    alpha=0,
+    beta=0,
+    label_size=3,
+    device=device,
+)
 spanemo = SpanEmo(
     output_dropout=float(args["--output-dropout"]),
     lang="Indonesia",
@@ -122,7 +131,7 @@ emorec = EmoRec(
 #     input_attention_masks=token["attention_mask"],
 #     label_idxs=torch.tensor([1, 2]),
 # )
-output = demux(
+output = demuxadv(
     input_ids=torch.tensor(token["input_ids"]),
     input_attention_masks=torch.tensor(token["attention_mask"]),
     label_idxs=torch.tensor([[1, 2, 3]]),
