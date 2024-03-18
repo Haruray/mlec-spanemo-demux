@@ -70,7 +70,7 @@ class DemuxLite(MLECModel):
             targets = targets.float().to(self.device)
 
         # Bert encoder
-        last_hidden_state = self.encoder(
+        last_hidden_state, _ = self.encoder(
             input_ids, attention_mask=input_attention_masks
         )
 
@@ -81,4 +81,4 @@ class DemuxLite(MLECModel):
         # select span of labels to compare them with ground truth ones
         logits = self.ffn(last_emotion_state).squeeze(-1)
         y_pred = self.compute_pred(logits)
-        return num_rows, y_pred, logits, targets, last_hidden_state
+        return num_rows, y_pred, logits, targets

@@ -11,7 +11,6 @@ class EmoRec(MLECModel):
         alpha=0.2,
         beta=0.1,
         embedding_vocab_size=30522,
-        seq_len=128,
         label_size=11,
         device="cuda:0",
     ):
@@ -30,15 +29,19 @@ class EmoRec(MLECModel):
         self.encoder.bert.resize_token_embeddings(embedding_vocab_size)
         self.encoder.bert.to(self.device)
 
-        self.ffn = nn.Sequential(
-            nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
-            nn.Tanh(),
-            nn.Dropout(p=output_dropout),
-            nn.Linear(self.encoder.feature_size, 1),
-        ).to(device)
+        # self.ffn = nn.Sequential(
+        #     nn.Linear(self.encoder.feature_size, self.encoder.feature_size),
+        #     nn.Tanh(),
+        #     nn.Dropout(p=output_dropout),
+        #     nn.Linear(self.encoder.feature_size, 1),
+        # ).to(device)
 
-        self.classifier = nn.Sequential(
-            nn.Linear(seq_len, label_size),
+        # self.classifier = nn.Sequential(
+        #     nn.Linear(seq_len, label_size),
+        # ).to(device)
+        self.ffn = nn.Sequential(
+            nn.Dropout(p=output_dropout),
+            nn.Linear(self.encoder.feature_size, label_size),
         ).to(device)
         self.encoder_parameters = self.encoder.parameters()
 
@@ -78,13 +81,11 @@ class EmoRec(MLECModel):
             targets = targets.float().to(self.device)
 
         # Bert encoder
-        last_hidden_state = self.encoder(
-            input_ids, attention_mask=input_attention_masks
-        )
+        _, pooler_output = self.encoder(input_ids, attention_mask=input_attention_masks)
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
         # select span of labels to compare them with ground truth ones
-        logits = self.ffn(last_hidden_state).squeeze(-1)
-        logits = self.classifier(logits)
+        logits = self.ffn(pooler_output).squeeze(-1)
+        # logits = self.classifier(logits)
 
         y_pred = self.compute_pred(logits)
-        return num_rows, y_pred, logits, targets, last_hidden_state
+        return num_rows, y_pred, logits, targets

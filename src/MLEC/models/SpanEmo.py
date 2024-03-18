@@ -72,7 +72,7 @@ class SpanEmo(MLECModel):
             targets = targets.float().to(self.device)
 
         # Bert encoder
-        last_hidden_state = self.encoder(
+        last_hidden_state, _ = self.encoder(
             input_ids, attention_mask=input_attention_masks
         )
         # FFN---> 2 linear layers---> linear layer + tanh---> linear layer
@@ -84,4 +84,4 @@ class SpanEmo(MLECModel):
         )
 
         y_pred = self.compute_pred(logits)
-        return num_rows, y_pred, logits, targets, last_hidden_state
+        return num_rows, y_pred, logits, targets

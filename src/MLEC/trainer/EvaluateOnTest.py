@@ -55,7 +55,7 @@ class EvaluateOnTest(object):
                     all_label_input_ids,
                 ) = batch
 
-                num_rows, y_pred, logits, targets, last_hidden_state = self.model(
+                num_rows, y_pred, logits, targets = self.model(
                     input_ids=inputs,
                     input_attention_masks=attention_masks,
                     targets=targets,

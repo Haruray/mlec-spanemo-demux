@@ -74,7 +74,7 @@ class Demux(MLECModel):
             targets = targets.float().to(self.device)
 
         # Bert encoder
-        last_hidden_state = self.encoder(
+        last_hidden_state, pooler_output = self.encoder(
             input_ids, attention_mask=input_attention_masks
         )
         # take only the emotion embeddings
@@ -101,4 +101,4 @@ class Demux(MLECModel):
         logits = self.classifier(logits)
 
         y_pred = self.compute_pred(logits)
-        return num_rows, y_pred, logits, targets, last_hidden_state
+        return num_rows, y_pred, logits, targets
