@@ -75,6 +75,6 @@ class EarlyStopping:
                 print("Delta tolerated. Saving model ...")
             else:
                 print(
-                    f"Validation loss decreased ({prev_best:.6f} --> {self.best_score:.6f}).  Saving model ..."
+                    f"{self.criteria} {"increased" if self.bigger_better else "decreased"} ({prev_best:.6f} --> {self.best_score:.6f}).  Saving model ..."
                 )
         torch.save(model.state_dict(), "../models/" + self.cur_date + "_checkpoint.pt")
