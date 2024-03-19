@@ -10,7 +10,6 @@ from MLEC.loss.inter_corr_loss import inter_corr_loss
 from MLEC.loss.intra_corr_loss import intra_corr_loss
 from MLEC.enums.CorrelationType import CorrelationType
 from MLEC.emotion_corr_weightings.Correlations import Correlations
-from torch.cuda.amp import GradScaler, autocast
 import torch.cuda
 
 
@@ -50,7 +49,6 @@ class Trainer(object):
         """
         optimizer, scheduler, step_scheduler_on_batch = self.optimizer(args)
         self.model = self.model.to(device)
-        scaler = GradScaler()  # Initialize GradScaler
         pbar = master_bar(range(num_epochs))
         headers = [
             "Train_Loss",
@@ -75,55 +73,50 @@ class Trainer(object):
                 progress_bar(self.train_data_loader, parent=pbar)
             ):
                 optimizer.zero_grad()
-                with autocast():  # Enable autocast
-                    (
-                        inputs,
-                        attention_masks,
-                        targets,
-                        lengths,
-                        label_idxs,
-                        label_input_ids,
-                        label_attention_masks,
-                        all_label_input_ids,
-                    ) = batch
+                (
+                    inputs,
+                    attention_masks,
+                    targets,
+                    lengths,
+                    label_idxs,
+                    label_input_ids,
+                    label_attention_masks,
+                    all_label_input_ids,
+                ) = batch
 
-                    num_rows, _, logits, targets = self.model(
-                        input_ids=inputs,
-                        input_attention_masks=attention_masks,
-                        targets=targets,
-                        target_input_ids=label_input_ids,
-                        target_attention_masks=label_attention_masks,
-                        lengths=lengths,
-                        label_idxs=label_idxs,
-                        all_label_input_ids=all_label_input_ids,
-                    )
-                    inter_corr_loss_total = intra_corr_loss(
-                        logits, targets, self.correlations
-                    )
-                    intra_corr_loss_total = inter_corr_loss(
-                        logits, targets, self.correlations
-                    )
-                    bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
-                        device
-                    )
-                    targets = targets.cpu().numpy()
-                    total_loss = (
-                        bce_loss * (1 - (self.model.alpha + self.model.beta))
-                        + (inter_corr_loss_total * self.model.alpha)
-                        + (intra_corr_loss_total * self.model.beta)
-                    )
+                num_rows, _, logits, targets = self.model(
+                    input_ids=inputs,
+                    input_attention_masks=attention_masks,
+                    targets=targets,
+                    target_input_ids=label_input_ids,
+                    target_attention_masks=label_attention_masks,
+                    lengths=lengths,
+                    label_idxs=label_idxs,
+                    all_label_input_ids=all_label_input_ids,
+                )
+                inter_corr_loss_total = intra_corr_loss(
+                    logits, targets, self.correlations
+                )
+                intra_corr_loss_total = inter_corr_loss(
+                    logits, targets, self.correlations
+                )
+                bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
+                    device
+                )
+                targets = targets.cpu().numpy()
+                total_loss = (
+                    bce_loss * (1 - (self.model.alpha + self.model.beta))
+                    + (inter_corr_loss_total * self.model.alpha)
+                    + (intra_corr_loss_total * self.model.beta)
+                )
                 overall_training_loss += total_loss.item() * num_rows
                 overall_inter_loss += inter_corr_loss_total.item() * num_rows
                 overall_intra_loss += intra_corr_loss_total.item() * num_rows
-                scaler.scale(total_loss).backward()  # Scale the loss value
-                # total_loss.backward()
-                scaler.unscale_(optimizer)
+                
+                total_loss.backward()
+
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
-                # optimizer.step()
-                scaler.step(
-                    optimizer
-                )  # Unscales the gradients and calls optimizer.step()
-                scaler.update()  # Updates the scale for next iteration
+ 
                 if step_scheduler_on_batch:
                     scheduler.step()
 
@@ -205,7 +198,6 @@ class Trainer(object):
         :returns: overall_val_loss (float), accuracies (dict{'acc': value}, preds (dict)
         """
         current_size = len(self.val_data_loader.dataset)
-        scaler = GradScaler()  # Initialize GradScaler
         # print("len col names: ", len(self.col_names))
         preds_dict = {
             "y_true": np.zeros([current_size, len(self.col_names)]),
@@ -220,43 +212,42 @@ class Trainer(object):
                     self.val_data_loader, parent=pbar, leave=(pbar is not None)
                 )
             ):
-                with autocast():  # Enable autocast
-                    (
-                        inputs,
-                        attention_masks,
-                        targets,
-                        lengths,
-                        label_idxs,
-                        label_input_ids,
-                        label_attention_masks,
-                        all_label_input_ids,
-                    ) = batch
+                (
+                    inputs,
+                    attention_masks,
+                    targets,
+                    lengths,
+                    label_idxs,
+                    label_input_ids,
+                    label_attention_masks,
+                    all_label_input_ids,
+                ) = batch
 
-                    num_rows, y_pred, logits, targets = self.model(
-                        input_ids=inputs,
-                        input_attention_masks=attention_masks,
-                        targets=targets,
-                        target_input_ids=inputs,
-                        target_attention_masks=attention_masks,
-                        lengths=lengths,
-                        label_idxs=label_idxs,
-                        all_label_input_ids=all_label_input_ids,
-                    )
-                    inter_corr_loss_total = intra_corr_loss(
-                        logits, targets, self.correlations
-                    )
-                    intra_corr_loss_total = inter_corr_loss(
-                        logits, targets, self.correlations
-                    )
-                    bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
-                        device
-                    )
-                    targets = targets.cpu().numpy()
-                    total_loss = (
-                        bce_loss * (1 - (self.model.alpha + self.model.beta))
-                        + (inter_corr_loss_total * self.model.alpha)
-                        + (intra_corr_loss_total * self.model.beta)
-                    )
+                num_rows, y_pred, logits, targets = self.model(
+                    input_ids=inputs,
+                    input_attention_masks=attention_masks,
+                    targets=targets,
+                    target_input_ids=inputs,
+                    target_attention_masks=attention_masks,
+                    lengths=lengths,
+                    label_idxs=label_idxs,
+                    all_label_input_ids=all_label_input_ids,
+                )
+                inter_corr_loss_total = intra_corr_loss(
+                    logits, targets, self.correlations
+                )
+                intra_corr_loss_total = inter_corr_loss(
+                    logits, targets, self.correlations
+                )
+                bce_loss = F.binary_cross_entropy_with_logits(logits, targets).to(
+                    device
+                )
+                targets = targets.cpu().numpy()
+                total_loss = (
+                    bce_loss * (1 - (self.model.alpha + self.model.beta))
+                    + (inter_corr_loss_total * self.model.alpha)
+                    + (intra_corr_loss_total * self.model.beta)
+                )
                 overall_val_loss += total_loss.item() * num_rows
 
                 current_index = index_dict
